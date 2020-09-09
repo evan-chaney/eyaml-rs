@@ -13,7 +13,22 @@ use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
 use std::path::Path;
 
-fn create_keys() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_key_creation(){
+        let pub_name = "pubtest.pkcs7.pem";
+        let priv_name = "privtest.pkcs7.pem";
+        create_keys(&pub_name, &priv_name);
+
+    }
+
+}
+
+
+fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Basically doing the same as this openssl command
     // openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/'
 
@@ -51,11 +66,11 @@ fn create_keys() {
     if !Path::new("keys").is_dir() {
         create_dir("keys").unwrap();
     }
-    let mut public_key_file = File::create("keys/public_key.pkcs7.pem").unwrap();
+    let mut public_key_file = File::create(format!("keys/{}", &public_key_filename)).unwrap();
     public_key_file
         .write_all(&signed_x509.to_pem().unwrap())
         .unwrap();
-    let mut private_key_file = File::create("keys/private_key.pkcs7.pem").unwrap();
+    let mut private_key_file = File::create(format!("keys/{}", &private_key_filename)).unwrap();
     private_key_file
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
@@ -70,7 +85,7 @@ fn main() {
     match args.subcommand_name() {
         Some("createkeys") => {
             println!("createkeys was specified.");
-            create_keys();
+            create_keys("public_key.pkcs7.pem", "private_key.pkcs7.pem");
         }
         Some("decrypt") => println!("This is not implemented yet."),
         Some("encrypt") => println!("This is not implemented yet."),
