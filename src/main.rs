@@ -18,15 +18,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_key_creation(){
+    fn test_key_creation() {
         let pub_name = "pubtest.pkcs7.pem";
         let priv_name = "privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
-
     }
-
 }
-
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Basically doing the same as this openssl command
