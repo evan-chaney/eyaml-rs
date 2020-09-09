@@ -1,14 +1,13 @@
 extern crate yaml_rust;
-use clap::{load_yaml, App, SubCommand};
+use clap::{load_yaml, App};
 extern crate openssl;
 
-use bytes::Bytes;
 use std::io::prelude::*;
 //use std::io::BufWriter;
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
 use openssl::pkey::PKey;
-use openssl::rsa::{Padding, Rsa};
+use openssl::rsa::Rsa;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
 use std::path::Path;
@@ -45,7 +44,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     //let mut x509_name = X509NameBuilder::new().unwrap();
     //x509_name.append_entry_by_text("Subject", "/").unwrap();
     // let x509_name = x509_name.build();
-
+    // todo fix this ^^
     //x509.set_subject_name(&x509_name).unwrap();
     x509.set_version(2).unwrap();
     x509.set_pubkey(&PKey::from_rsa(private_key.clone()).unwrap())
