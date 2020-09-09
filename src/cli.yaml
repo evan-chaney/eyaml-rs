@@ -1,5 +1,5 @@
 ---
-name: eyaml
+name: eyaml-rs
 version: "0.1"
 author: Evan Chaney <evanachaney@gmail.com>
 about: EYAML CLI implementation in Rust
@@ -8,5 +8,18 @@ args:
       short: v
       long: verbose
       help: Enables verbose mode
-  - test123:
-      short: t 
+subcommands:
+  - createkeys:
+      about: Create new encryption keys  
+  - decrypt:
+      about: Decrypt some data
+  - edit:
+      about: Edit an eyaml file 
+  - encrypt:
+      about: Encrypt some data
+  - recrypt:
+      about: Re-encrypt and eyaml file
+  - rekey:
+      about: Create new keys and re-encrypt an eyaml file
+  - version:
+      about: Show version info
