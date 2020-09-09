@@ -3,4 +3,10 @@ name: eyaml
 version: "0.1"
 author: Evan Chaney <evanachaney@gmail.com>
 about: EYAML CLI implementation in Rust
-args: {}
+args:
+  - verbose:
+      short: v
+      long: verbose
+      help: Enables verbose mode
+  - test123:
+      short: t 
