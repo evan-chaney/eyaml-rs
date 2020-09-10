@@ -3,10 +3,11 @@ use clap::{load_yaml, App};
 extern crate openssl;
 
 use std::io::prelude::*;
+use std::io::BufReader;
 //use std::io::BufWriter;
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
-use openssl::pkey::PKey;
+use openssl::pkey::{PKey,Private};
 use openssl::rsa::Rsa;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
@@ -15,7 +16,6 @@ use std::path::Path;
 #[cfg(test)]
 mod tests {
 
-    use std::io::BufReader;
     use std::fs::remove_file;
     // Pull all the imports from the rest of this file
     use super::*;
@@ -36,9 +36,11 @@ mod tests {
         pub_reader.read_to_end(&mut pub_contents).unwrap();
         priv_reader.read_to_end(&mut priv_contents).unwrap();
 
-        let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
-        let pub_key = X509::from_pem(&pub_contents).unwrap();
-        
+        //let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
+        //let pub_key = X509::from_pem(&pub_contents).unwrap();
+       
+        let priv_key = load_rsa_file_private(&priv_name);
+        let pub_key = load_x509_file(&pub_name);
         assert_eq!(pub_key.verify(
             PKey::from_rsa(priv_key).unwrap().as_ref()
                 ).unwrap(), true);
@@ -49,6 +51,26 @@ mod tests {
     }
 
 
+}
+
+fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
+        let priv_key_file = File::open(&private_key_filename).unwrap();
+        let mut priv_reader = BufReader::new(priv_key_file);
+        let mut priv_contents = Vec::new();
+
+        priv_reader.read_to_end(&mut priv_contents).unwrap();
+        let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
+        return priv_key;
+}
+
+
+fn load_x509_file(public_key_filename: &str) -> X509{
+        let pub_key_file = File::open(&public_key_filename).unwrap();
+        let mut pub_reader = BufReader::new(pub_key_file);
+        let mut pub_contents = Vec::new();
+        pub_reader.read_to_end(&mut pub_contents).unwrap();
+        let pub_key = X509::from_pem(&pub_contents).unwrap();
+        return pub_key;
 }
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
@@ -67,6 +89,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     x509.set_not_after(&not_after).unwrap();
     x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
         .unwrap();
+
     // Build our name
     let mut x509_name = X509NameBuilder::new().unwrap();
     x509_name.append_entry_by_text("CN", "/").unwrap();
@@ -99,6 +122,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
         .unwrap();
     println!("Keys generated and written to files!")
 }
+
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
