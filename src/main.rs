@@ -15,6 +15,7 @@ use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
 use std::path::Path;
+use std::str::from_utf8;
 
 #[cfg(test)]
 mod tests {
@@ -84,13 +85,17 @@ fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) {
     let mut cert_stack = Stack::new().unwrap();
     cert_stack.push(cert_content).unwrap();
 
-    Pkcs7::encrypt(
+    let encrypted_pkcs7 = Pkcs7::encrypt(
         cert_stack.as_ref(),
         plaintext,
         encryption_algo,
         Pkcs7Flags::empty(),
     )
     .unwrap();
+    println!(
+        "New ciphertext: {:?}",
+        from_utf8(&encrypted_pkcs7.as_ref().to_pem().unwrap()).unwrap()
+    );
 }
 
 //todo return Vec<u8>
@@ -100,13 +105,17 @@ fn decrypt_str(public_key_filename: &str, private_key_filename: &str, pkcs7_ciph
     let pub_cert = load_x509_file(public_key_filename);
     let cipher_content = Pkcs7::from_pem(pkcs7_ciphertext).unwrap();
 
-    cipher_content
+    let decrypted_content = cipher_content
         .decrypt(
             PKey::from_rsa(priv_key).unwrap().as_ref(),
             pub_cert.as_ref(),
             Pkcs7Flags::empty(),
         )
         .unwrap();
+    println!(
+        "Decrypted content: {:?}",
+        from_utf8(decrypted_content.as_ref()).unwrap()
+    );
 }
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
@@ -169,7 +178,7 @@ fn main() {
             println!("createkeys was specified.");
             create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
         }
-        Some("decrypt") => println!("This is not implemented yet."),
+        Some("decrypt") => decrypt_str("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem", "-----BEGIN PKCS7-----\nMIIBeQYJKoZIhvcNAQcDoIIBajCCAWYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ\nKoZIhvcNAQEBBQAEggEAWww6//+ORx2qqk1PaqTbTfEcQtDZDqvZ/arg8yeKQZQS\nM0W1eZlqUGWT2ZAcsa1GWc8vN4AoPsJ1tGzQ+g8Aae75y5GL6kZT+iTlwkT98oAI\nhGYApbcR6LeiZyH5rr1yHGxcsA+bxFwpxFq65eWa8b+djcZmmT5PDqYUMtKSNK6i\nytzepK9sOmU6UlJyJGq9at1eOENzLRNg3X6cUq76s1ddb8hVqZ7LM8PP4xlAlGxQ\nJ7Xj5puIhbR7LxeHr65vnWGIxnqDhy5rtT1HEGddZ5JrbtmV/UHBtlhqito3QW9j\ngZsVLdi+ciIcPjeUWIsqjnU6T4mMVUdXgNN7k1uG/TA8BgkqhkiG9w0BBwEwHQYJ\nYIZIAWUDBAEqBBDHN+7yKXka9doBNp6losC3gBDKAIfkia9rVl5iem7IqPMp\n-----END PKCS7-----\n".as_bytes()),
         Some("encrypt") => encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes()),
         Some("recrypt") => println!("This is not implemented yet."),
         Some("rekey") => println!("This is not implemented yet."),
