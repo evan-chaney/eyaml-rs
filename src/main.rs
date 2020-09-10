@@ -7,12 +7,12 @@ use std::io::BufReader;
 //use std::io::BufWriter;
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
+use openssl::pkcs7::{Pkcs7, Pkcs7Flags, Pkcs7Ref};
 use openssl::pkey::{PKey, Private};
 use openssl::rsa::Rsa;
-use openssl::x509::{X509Builder, X509NameBuilder, X509};
-use openssl::symm::Cipher;
-use openssl::pkcs7::{Pkcs7,Pkcs7Ref,Pkcs7Flags};
 use openssl::stack::Stack;
+use openssl::symm::Cipher;
+use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
 use std::path::Path;
 
@@ -78,19 +78,19 @@ fn load_x509_file(public_key_filename: &str) -> X509 {
 //todo return Pkcs7
 fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) {
     let encryption_algo: Cipher = Cipher::aes_256_cbc();
-    
+
     let cert_content = load_x509_file(public_key_filename);
 
     let mut cert_stack = Stack::new().unwrap();
     cert_stack.push(cert_content).unwrap();
-    
+
     Pkcs7::encrypt(
-            cert_stack.as_ref(),
-            plaintext,
-            encryption_algo,
-            Pkcs7Flags::empty(),
-    ).unwrap();
-    
+        cert_stack.as_ref(),
+        plaintext,
+        encryption_algo,
+        Pkcs7Flags::empty(),
+    )
+    .unwrap();
 }
 
 //todo return Vec<u8>
@@ -99,13 +99,14 @@ fn decrypt_str(public_key_filename: &str, private_key_filename: &str, pkcs7_ciph
     let priv_key = load_rsa_file_private(private_key_filename);
     let pub_cert = load_x509_file(public_key_filename);
     let cipher_content = Pkcs7::from_pem(pkcs7_ciphertext).unwrap();
-    
-    cipher_content.decrypt(
+
+    cipher_content
+        .decrypt(
             PKey::from_rsa(priv_key).unwrap().as_ref(),
             pub_cert.as_ref(),
             Pkcs7Flags::empty(),
-            ).unwrap();
-
+        )
+        .unwrap();
 }
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
@@ -122,7 +123,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Create ref for our timeperiod
     let not_after = Asn1Time::days_from_now(100000).unwrap();
     x509.set_not_after(&not_after).unwrap();
-        x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
+    x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
         .unwrap();
 
     // Build our name
