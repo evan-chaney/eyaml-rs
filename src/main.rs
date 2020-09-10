@@ -17,6 +17,7 @@ mod tests {
 
     use std::io::BufReader;
     use std::fs::remove_file;
+    // Pull all the imports from the rest of this file
     use super::*;
 
     #[test]
@@ -46,6 +47,8 @@ mod tests {
         remove_file(&pub_name).unwrap();
         remove_file(&priv_name).unwrap();
     }
+
+
 }
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
@@ -82,9 +85,9 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
 
     // Write files
     // ensure our keys' parent dir exists
-    // todo: make this dynamic
-    if !Path::new("keys").is_dir() {
-        create_dir("keys").unwrap();
+    // todo: make this dynamic/loop with both keys in case they're in different dirs
+    if !Path::new(&public_key_filename).parent().unwrap().is_dir() {
+        create_dir(Path::new(&public_key_filename).parent().unwrap()).unwrap();
     }
     let mut public_key_file = File::create(&public_key_filename).unwrap();
     public_key_file
