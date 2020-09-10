@@ -3,13 +3,14 @@ use clap::{load_yaml, App};
 extern crate openssl;
 
 use std::io::prelude::*;
+use std::io::BufReader;
 //use std::io::BufWriter;
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
 use openssl::pkey::PKey;
 use openssl::rsa::Rsa;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
-use std::fs::{create_dir, File};
+use std::fs::{create_dir, File, remove_file};
 use std::path::Path;
 
 #[cfg(test)]
@@ -18,9 +19,30 @@ mod tests {
 
     #[test]
     fn test_key_creation() {
-        let pub_name = "pubtest.pkcs7.pem";
-        let priv_name = "privtest.pkcs7.pem";
+        let pub_name = "keys/pubtest.pkcs7.pem";
+        let priv_name = "keys/privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
+
+        // Verify cert is signed by key
+        let pub_key_file = File::open(&pub_name).unwrap();
+        let mut pub_reader = BufReader::new(pub_key_file);
+        let priv_key_file = File::open(&priv_name).unwrap();
+        let mut priv_reader = BufReader::new(priv_key_file);
+        let mut pub_contents = Vec::new();
+        let mut priv_contents = Vec::new();
+        pub_reader.read_to_end(&mut pub_contents).unwrap();
+        priv_reader.read_to_end(&mut priv_contents).unwrap();
+
+        let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
+        let pub_key = X509::from_pem(&pub_contents).unwrap();
+        
+        assert_eq!(pub_key.verify(
+            PKey::from_rsa(priv_key).unwrap().as_ref()
+                ).unwrap(), true);
+        
+        // Delete files
+        remove_file(&pub_name).unwrap();
+        remove_file(&priv_name).unwrap();
     }
 }
 
@@ -58,15 +80,16 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     let signed_x509: X509 = x509.build();
 
     // Write files
-    // ensure our keys dir exists
+    // ensure our keys' parent dir exists
+    // todo: make this dynamic
     if !Path::new("keys").is_dir() {
         create_dir("keys").unwrap();
     }
-    let mut public_key_file = File::create(format!("keys/{}", &public_key_filename)).unwrap();
+    let mut public_key_file = File::create(&public_key_filename).unwrap();
     public_key_file
         .write_all(&signed_x509.to_pem().unwrap())
         .unwrap();
-    let mut private_key_file = File::create(format!("keys/{}", &private_key_filename)).unwrap();
+    let mut private_key_file = File::create(&private_key_filename).unwrap();
     private_key_file
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
@@ -81,7 +104,7 @@ fn main() {
     match args.subcommand_name() {
         Some("createkeys") => {
             println!("createkeys was specified.");
-            create_keys("public_key.pkcs7.pem", "private_key.pkcs7.pem");
+            create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
         }
         Some("decrypt") => println!("This is not implemented yet."),
         Some("encrypt") => println!("This is not implemented yet."),
