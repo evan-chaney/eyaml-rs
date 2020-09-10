@@ -10,6 +10,9 @@ use openssl::hash::MessageDigest;
 use openssl::pkey::{PKey, Private};
 use openssl::rsa::Rsa;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
+use openssl::symm::Cipher;
+use openssl::pkcs7::{Pkcs7,Pkcs7Ref,Pkcs7Flags};
+use openssl::stack::{Stack, StackRef};
 use std::fs::{create_dir, File};
 use std::path::Path;
 
@@ -58,7 +61,6 @@ fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
     let priv_key_file = File::open(&private_key_filename).unwrap();
     let mut priv_reader = BufReader::new(priv_key_file);
     let mut priv_contents = Vec::new();
-
     priv_reader.read_to_end(&mut priv_contents).unwrap();
     let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
     return priv_key;
@@ -73,7 +75,22 @@ fn load_x509_file(public_key_filename: &str) -> X509 {
     return pub_key;
 }
 
-fn encrypt_str(public_key_filename: &str, private_key_filename: &str, plaintext: &str) {}
+fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) {
+    let encryption_algo: Cipher = Cipher::aes_256_cbc();
+    
+    let cert_content = load_x509_file(public_key_filename);
+
+    let mut cert_stack = Stack::new().unwrap();
+    cert_stack.push(cert_content).unwrap();
+    
+    Pkcs7::encrypt(
+            cert_stack.as_ref(),
+            plaintext,
+            encryption_algo,
+            Pkcs7Flags::empty(),
+        ).unwrap();
+    
+}
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Basically doing the same as this openssl command
@@ -89,7 +106,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Create ref for our timeperiod
     let not_after = Asn1Time::days_from_now(100000).unwrap();
     x509.set_not_after(&not_after).unwrap();
-    x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
+        x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
         .unwrap();
 
     // Build our name
@@ -136,7 +153,7 @@ fn main() {
             create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
         }
         Some("decrypt") => println!("This is not implemented yet."),
-        Some("encrypt") => println!("This is not implemented yet."),
+        Some("encrypt") => encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes()),
         Some("recrypt") => println!("This is not implemented yet."),
         Some("rekey") => println!("This is not implemented yet."),
         None => println!("No subcommand was specified."),
