@@ -7,7 +7,7 @@ use std::io::BufReader;
 //use std::io::BufWriter;
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
-use openssl::pkey::{PKey,Private};
+use openssl::pkey::{PKey, Private};
 use openssl::rsa::Rsa;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::fs::{create_dir, File};
@@ -38,40 +38,42 @@ mod tests {
 
         //let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
         //let pub_key = X509::from_pem(&pub_contents).unwrap();
-       
+
         let priv_key = load_rsa_file_private(&priv_name);
         let pub_key = load_x509_file(&pub_name);
-        assert_eq!(pub_key.verify(
-            PKey::from_rsa(priv_key).unwrap().as_ref()
-                ).unwrap(), true);
-        
+        assert_eq!(
+            pub_key
+                .verify(PKey::from_rsa(priv_key).unwrap().as_ref())
+                .unwrap(),
+            true
+        );
+
         // Delete files
         remove_file(&pub_name).unwrap();
         remove_file(&priv_name).unwrap();
     }
-
-
 }
 
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
-        let priv_key_file = File::open(&private_key_filename).unwrap();
-        let mut priv_reader = BufReader::new(priv_key_file);
-        let mut priv_contents = Vec::new();
+    let priv_key_file = File::open(&private_key_filename).unwrap();
+    let mut priv_reader = BufReader::new(priv_key_file);
+    let mut priv_contents = Vec::new();
 
-        priv_reader.read_to_end(&mut priv_contents).unwrap();
-        let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
-        return priv_key;
+    priv_reader.read_to_end(&mut priv_contents).unwrap();
+    let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
+    return priv_key;
 }
 
-
-fn load_x509_file(public_key_filename: &str) -> X509{
-        let pub_key_file = File::open(&public_key_filename).unwrap();
-        let mut pub_reader = BufReader::new(pub_key_file);
-        let mut pub_contents = Vec::new();
-        pub_reader.read_to_end(&mut pub_contents).unwrap();
-        let pub_key = X509::from_pem(&pub_contents).unwrap();
-        return pub_key;
+fn load_x509_file(public_key_filename: &str) -> X509 {
+    let pub_key_file = File::open(&public_key_filename).unwrap();
+    let mut pub_reader = BufReader::new(pub_key_file);
+    let mut pub_contents = Vec::new();
+    pub_reader.read_to_end(&mut pub_contents).unwrap();
+    let pub_key = X509::from_pem(&pub_contents).unwrap();
+    return pub_key;
 }
+
+fn encrypt_str(public_key_filename: &str, private_key_filename: &str, plaintext: &str) {}
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // Basically doing the same as this openssl command
@@ -122,7 +124,6 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
         .unwrap();
     println!("Keys generated and written to files!")
 }
-
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
