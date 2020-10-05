@@ -35,16 +35,16 @@ mod tests {
         let priv_name = "keys/privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
 
-//        // Verify cert is signed by key
-//        let pub_key_file = File::open(&pub_name).unwrap();
-//        let mut pub_reader = BufReader::new(pub_key_file);
-//        let priv_key_file = File::open(&priv_name).unwrap();
-//        let mut priv_reader = BufReader::new(priv_key_file);
-//        let mut pub_contents = Vec::new();
-//        let mut priv_contents = Vec::new();
-//        pub_reader.read_to_end(&mut pub_contents).unwrap();
-//        priv_reader.read_to_end(&mut priv_contents).unwrap();
-//
+        //        // Verify cert is signed by key
+        //        let pub_key_file = File::open(&pub_name).unwrap();
+        //        let mut pub_reader = BufReader::new(pub_key_file);
+        //        let priv_key_file = File::open(&priv_name).unwrap();
+        //        let mut priv_reader = BufReader::new(priv_key_file);
+        //        let mut pub_contents = Vec::new();
+        //        let mut priv_contents = Vec::new();
+        //        pub_reader.read_to_end(&mut pub_contents).unwrap();
+        //        priv_reader.read_to_end(&mut priv_contents).unwrap();
+        //
         //let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
         //let pub_key = X509::from_pem(&pub_contents).unwrap();
 
@@ -63,17 +63,23 @@ mod tests {
     }
 
     #[test]
-    fn encrypt_decrypt(){
-        
+    fn encrypt_decrypt() {
         let pub_name = "keys/pubtest.pkcs7.pem";
         let priv_name = "keys/privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
 
-
         let test_string = "abcd1234";
         let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes());
-        assert_eq!(test_string, from_utf8(&decrypt_str(&pub_name, &priv_name, &cipherstring.as_ref().to_pem().unwrap())).unwrap());
-    } 
+        assert_eq!(
+            test_string,
+            from_utf8(&decrypt_str(
+                &pub_name,
+                &priv_name,
+                &cipherstring.as_ref().to_pem().unwrap()
+            ))
+            .unwrap()
+        );
+    }
 }
 
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
@@ -115,7 +121,11 @@ fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::P
 }
 
 //todo return Vec<u8>
-fn decrypt_str(public_key_filename: &str, private_key_filename: &str, pkcs7_ciphertext: &[u8]) -> Vec<u8> {
+fn decrypt_str(
+    public_key_filename: &str,
+    private_key_filename: &str,
+    pkcs7_ciphertext: &[u8],
+) -> Vec<u8> {
     let priv_key = load_rsa_file_private(private_key_filename);
     let pub_cert = load_x509_file(public_key_filename);
     let cipher_content = Pkcs7::from_pem(pkcs7_ciphertext).unwrap();
@@ -184,28 +194,21 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     println!("Keys generated and written to files!")
 }
 
-
-fn open_editor(yaml_path: &str){
+fn open_editor(yaml_path: &str) {
     let editor = var("EDITOR").unwrap();
     let mut file_path = temp_dir();
     file_path.push("editable");
     File::create(&file_path).expect("Could not create file");
 
-      Command::new(editor)
+    Command::new(editor)
         .arg(&file_path)
         .status()
         .expect("Something went wrong");
-
-
 }
-
 
 fn create_keys_cli() -> u8 {
-
     return 0;
 }
-
-
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
@@ -218,14 +221,35 @@ fn main() {
             create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
             ();
         }
-        Some("decrypt") => {decrypt_str("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem", "-----BEGIN PKCS7-----\nMIIBeQYJKoZIhvcNAQcDoIIBajCCAWYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ\nKoZIhvcNAQEBBQAEggEAWww6//+ORx2qqk1PaqTbTfEcQtDZDqvZ/arg8yeKQZQS\nM0W1eZlqUGWT2ZAcsa1GWc8vN4AoPsJ1tGzQ+g8Aae75y5GL6kZT+iTlwkT98oAI\nhGYApbcR6LeiZyH5rr1yHGxcsA+bxFwpxFq65eWa8b+djcZmmT5PDqYUMtKSNK6i\nytzepK9sOmU6UlJyJGq9at1eOENzLRNg3X6cUq76s1ddb8hVqZ7LM8PP4xlAlGxQ\nJ7Xj5puIhbR7LxeHr65vnWGIxnqDhy5rtT1HEGddZ5JrbtmV/UHBtlhqito3QW9j\ngZsVLdi+ciIcPjeUWIsqjnU6T4mMVUdXgNN7k1uG/TA8BgkqhkiG9w0BBwEwHQYJ\nYIZIAWUDBAEqBBDHN+7yKXka9doBNp6losC3gBDKAIfkia9rVl5iem7IqPMp\n-----END PKCS7-----\n".as_bytes()); ()},
-        Some("encrypt") => { encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes()); ()},
-        Some("recrypt") => { println!("This is not implemented yet."); ()},
-        Some("rekey") => { println!("This is not implemented yet."); ()},
-        Some("edit") => { open_editor("Test123"); ()},
-        None => { println!("No subcommand was specified."); ()},
-        _ => { println!("Unknown subcommand specified"); ()},
+        Some("decrypt") => {
+            decrypt_str("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem", "-----BEGIN PKCS7-----\nMIIBeQYJKoZIhvcNAQcDoIIBajCCAWYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ\nKoZIhvcNAQEBBQAEggEAWww6//+ORx2qqk1PaqTbTfEcQtDZDqvZ/arg8yeKQZQS\nM0W1eZlqUGWT2ZAcsa1GWc8vN4AoPsJ1tGzQ+g8Aae75y5GL6kZT+iTlwkT98oAI\nhGYApbcR6LeiZyH5rr1yHGxcsA+bxFwpxFq65eWa8b+djcZmmT5PDqYUMtKSNK6i\nytzepK9sOmU6UlJyJGq9at1eOENzLRNg3X6cUq76s1ddb8hVqZ7LM8PP4xlAlGxQ\nJ7Xj5puIhbR7LxeHr65vnWGIxnqDhy5rtT1HEGddZ5JrbtmV/UHBtlhqito3QW9j\ngZsVLdi+ciIcPjeUWIsqjnU6T4mMVUdXgNN7k1uG/TA8BgkqhkiG9w0BBwEwHQYJ\nYIZIAWUDBAEqBBDHN+7yKXka9doBNp6losC3gBDKAIfkia9rVl5iem7IqPMp\n-----END PKCS7-----\n".as_bytes());
+            ()
+        }
+        Some("encrypt") => {
+            encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes());
+            ()
+        }
+        Some("recrypt") => {
+            println!("This is not implemented yet.");
+            ()
+        }
+        Some("rekey") => {
+            println!("This is not implemented yet.");
+            ()
+        }
+        Some("edit") => {
+            open_editor("Test123");
+            ()
+        }
+        None => {
+            println!("No subcommand was specified.");
+            ()
+        }
+        _ => {
+            println!("Unknown subcommand specified");
+            ()
+        }
     }
-        
+
     //println!("Args: {:#?}", args);
 }
