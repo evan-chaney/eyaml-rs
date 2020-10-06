@@ -23,6 +23,10 @@ subcommands:
   - decrypt:
       about: Decrypt some data
       args:
+        - public-key-path:
+            help: path to create the public key at
+            short: p
+            long: public-key-file
         - private-key-path:
             help: path to find the private key at
             short: p
