@@ -21,6 +21,10 @@ subcommands:
       args:
         - private-key-path:
             help: path to find the private key at
+        - string:
+            short: s
+            long: string
+            help: String to encrypt
   - edit:
       about: Edit an eyaml file
   - encrypt:
@@ -32,7 +36,6 @@ subcommands:
             short: s
             long: string
             help: String to encrypt
-            required: true
   - recrypt:
       about: Re-encrypt and eyaml file
   - rekey:

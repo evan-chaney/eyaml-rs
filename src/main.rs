@@ -222,20 +222,35 @@ fn main() {
             ();
         }
         Some("decrypt") => {
-            decrypt_str("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem", "-----BEGIN PKCS7-----\nMIIBeQYJKoZIhvcNAQcDoIIBajCCAWYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ\nKoZIhvcNAQEBBQAEggEAWww6//+ORx2qqk1PaqTbTfEcQtDZDqvZ/arg8yeKQZQS\nM0W1eZlqUGWT2ZAcsa1GWc8vN4AoPsJ1tGzQ+g8Aae75y5GL6kZT+iTlwkT98oAI\nhGYApbcR6LeiZyH5rr1yHGxcsA+bxFwpxFq65eWa8b+djcZmmT5PDqYUMtKSNK6i\nytzepK9sOmU6UlJyJGq9at1eOENzLRNg3X6cUq76s1ddb8hVqZ7LM8PP4xlAlGxQ\nJ7Xj5puIhbR7LxeHr65vnWGIxnqDhy5rtT1HEGddZ5JrbtmV/UHBtlhqito3QW9j\ngZsVLdi+ciIcPjeUWIsqjnU6T4mMVUdXgNN7k1uG/TA8BgkqhkiG9w0BBwEwHQYJ\nYIZIAWUDBAEqBBDHN+7yKXka9doBNp6losC3gBDKAIfkia9rVl5iem7IqPMp\n-----END PKCS7-----\n".as_bytes());
+            //let string_to_decrypt = args.value_of("string");
+            let string_to_decrypt = match args.value_of("string") {
+                Some(words) => words,
+                None => "-----BEGIN PKCS7-----\nMIIBeQYJKoZIhvcNAQcDoIIBajCCAWYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ\nKoZIhvcNAQEBBQAEggEAWww6//+ORx2qqk1PaqTbTfEcQtDZDqvZ/arg8yeKQZQS\nM0W1eZlqUGWT2ZAcsa1GWc8vN4AoPsJ1tGzQ+g8Aae75y5GL6kZT+iTlwkT98oAI\nhGYApbcR6LeiZyH5rr1yHGxcsA+bxFwpxFq65eWa8b+djcZmmT5PDqYUMtKSNK6i\nytzepK9sOmU6UlJyJGq9at1eOENzLRNg3X6cUq76s1ddb8hVqZ7LM8PP4xlAlGxQ\nJ7Xj5puIhbR7LxeHr65vnWGIxnqDhy5rtT1HEGddZ5JrbtmV/UHBtlhqito3QW9j\ngZsVLdi+ciIcPjeUWIsqjnU6T4mMVUdXgNN7k1uG/TA8BgkqhkiG9w0BBwEwHQYJ\nYIZIAWUDBAEqBBDHN+7yKXka9doBNp6losC3gBDKAIfkia9rVl5iem7IqPMp\n-----END PKCS7-----\n"
+            };
+            println!("{}", &string_to_decrypt);
+            decrypt_str(
+                "keys/public_key.pkcs7.pem",
+                "keys/private_key.pkcs7.pem",
+                string_to_decrypt.as_bytes(),
+            );
             ()
         }
         Some("encrypt") => {
-            let string_to_encrypt = args.value_of("string");
-            encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes());
+            let string_to_encrypt = match args.value_of("string") {
+                Some(words) => words,
+                None => "Hello World!",
+            };
+            encrypt_str("keys/public_key.pkcs7.pem", string_to_encrypt.as_bytes());
             ()
         }
         Some("recrypt") => {
             println!("This is not implemented yet.");
+            unimplemented!();
             ()
         }
         Some("rekey") => {
             println!("This is not implemented yet.");
+            unimplemented!();
             ()
         }
         Some("edit") => {
