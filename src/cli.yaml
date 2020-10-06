@@ -14,13 +14,19 @@ subcommands:
       args:
         - public-key-path:
             help: path to create the public key at
+            short: p
+            long: public-key-file
         - private-key-path:
             help: path to create the private key at
+            short: k
+            long: private-key-file
   - decrypt:
       about: Decrypt some data
       args:
         - private-key-path:
             help: path to find the private key at
+            short: p
+            long: private-key-file
         - string:
             short: s
             long: string
@@ -31,7 +37,9 @@ subcommands:
       about: Encrypt some data
       args:
         - public-key-path:
+            short: p
             help: path to find the public key at
+            long: public-key-file
         - string:
             short: s
             long: string
