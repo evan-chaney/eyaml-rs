@@ -10,13 +10,29 @@ args:
       help: Enables verbose mode
 subcommands:
   - createkeys:
-      about: Create new encryption keys  
+      about: Create new encryption keys
+      args:
+        - public-key-path:
+            help: path to create the public key at
+        - private-key-path:
+            help: path to create the private key at
   - decrypt:
       about: Decrypt some data
+      args:
+        - private-key-path:
+            help: path to find the private key at
   - edit:
-      about: Edit an eyaml file 
+      about: Edit an eyaml file
   - encrypt:
       about: Encrypt some data
+      args:
+        - public-key-path:
+            help: path to find the public key at
+        - string:
+            short: s
+            long: string
+            help: String to encrypt
+            required: true
   - recrypt:
       about: Re-encrypt and eyaml file
   - rekey:

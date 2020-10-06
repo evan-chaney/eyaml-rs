@@ -226,6 +226,7 @@ fn main() {
             ()
         }
         Some("encrypt") => {
+            let string_to_encrypt = args.value_of("string");
             encrypt_str("keys/public_key.pkcs7.pem", "Hello World!".as_bytes());
             ()
         }
