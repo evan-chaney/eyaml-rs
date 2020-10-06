@@ -82,6 +82,7 @@ mod tests {
     }
 }
 
+// Change to return result object
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
     let priv_key_file = File::open(&private_key_filename).unwrap();
     let mut priv_reader = BufReader::new(priv_key_file);
@@ -91,6 +92,7 @@ fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
     return priv_key;
 }
 
+// Change to return result object
 fn load_x509_file(public_key_filename: &str) -> X509 {
     let pub_key_file = File::open(&public_key_filename).unwrap();
     let mut pub_reader = BufReader::new(pub_key_file);
@@ -120,7 +122,6 @@ fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::P
     return encrypted_pkcs7;
 }
 
-//todo return Vec<u8>
 fn decrypt_str(
     public_key_filename: &str,
     private_key_filename: &str,
@@ -206,6 +207,7 @@ fn open_editor(yaml_path: &str) {
         .expect("Something went wrong");
 }
 
+// Maybe this isn't the right way to do this
 fn create_keys_cli() -> u8 {
     return 0;
 }
