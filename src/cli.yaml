@@ -16,10 +16,12 @@ subcommands:
             help: path to create the public key at
             short: p
             long: public-key-file
+            takes_value: true
         - private-key-path:
             help: path to create the private key at
             short: k
             long: private-key-file
+            takes_value: true
   - decrypt:
       about: Decrypt some data
       args:
@@ -27,14 +29,17 @@ subcommands:
             help: path to create the public key at
             short: p
             long: public-key-file
+            takes_value: true
         - private-key-path:
             help: path to find the private key at
-            short: p
+            short: k
             long: private-key-file
+            takes_value: true
         - string:
             short: s
             long: string
             help: String to encrypt
+            takes_value: true
   - edit:
       about: Edit an eyaml file
   - encrypt:
@@ -44,10 +49,12 @@ subcommands:
             short: p
             help: path to find the public key at
             long: public-key-file
+            takes_value: true
         - string:
             short: s
             long: string
             help: String to encrypt
+            takes_value: true
   - recrypt:
       about: Re-encrypt and eyaml file
   - rekey:
