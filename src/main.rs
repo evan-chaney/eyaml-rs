@@ -82,6 +82,14 @@ mod tests {
     }
 }
 
+fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
+    let file_obj = File::open(&file_path)?;
+    let mut file_reader = BufReader::new(file_obj);
+    let mut file_contents = Vec::new();
+    file_reader.read_to_end(&mut file_contents)?;
+    Ok(file_contents)
+}
+
 // Change to return result object
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
     let priv_key_file = File::open(&private_key_filename).unwrap();
@@ -199,7 +207,7 @@ fn open_editor(yaml_path: &str) {
     let editor = var("EDITOR").unwrap();
     let mut file_path = temp_dir();
     file_path.push("editable");
-    File::create(&file_path).expect("Could not create file");
+    File::create(&file_path).expect(&format!("Could not create file at {:?}", &file_path));
 
     Command::new(editor)
         .arg(&file_path)
@@ -226,7 +234,7 @@ fn main() {
             //let string_to_decrypt = args.value_of("string");
             let string_to_decrypt = match args.value_of("string") {
                 Some(words) => words,
-                None => ""
+                None => "",
             };
             println!("{}", &string_to_decrypt);
             decrypt_str(
