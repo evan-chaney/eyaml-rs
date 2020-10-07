@@ -92,11 +92,15 @@ fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
 
 // Change to return result object
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
-    let priv_key_file = File::open(&private_key_filename).unwrap();
-    let mut priv_reader = BufReader::new(priv_key_file);
-    let mut priv_contents = Vec::new();
-    priv_reader.read_to_end(&mut priv_contents).unwrap();
-    let priv_key = Rsa::private_key_from_pem(&priv_contents).unwrap();
+    //let priv_key_file = File::open(&private_key_filename).unwrap();
+    //let mut priv_reader = BufReader::new(priv_key_file);
+    //let mut priv_contents = Vec::new();
+    //priv_reader.read_to_end(&mut priv_contents).unwrap();
+    let priv_contents = read_file_contents(private_key_filename)
+        .expect("There was an error reading the contents of the private key!");
+
+    let priv_key = Rsa::private_key_from_pem(&priv_contents)
+        .expect("There was an error parsing the private key!");
     return priv_key;
 }
 
@@ -112,6 +116,7 @@ fn load_x509_file(public_key_filename: &str) -> X509 {
 
 //todo return Pkcs7
 fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::Pkcs7 {
+    println!("Using public key: {}", &public_key_filename);
     let encryption_algo: Cipher = Cipher::aes_256_cbc();
     let cert_content = load_x509_file(public_key_filename);
     let mut cert_stack = Stack::new().unwrap();
@@ -225,12 +230,12 @@ fn main() {
     let args = App::from(cli_yaml).get_matches();
 
     // Flow for different subcommands
-    match args.subcommand_name() {
-        Some("createkeys") => {
+    match args.subcommand() {
+        Some(("createkeys", createkeys_args)) => {
             println!("createkeys was specified.");
             create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
         }
-        Some("decrypt") => {
+        Some(("decrypt", decrypt_args)) => {
             //let string_to_decrypt = args.value_of("string");
             let string_to_decrypt = match args.value_of("string") {
                 Some(words) => words,
@@ -243,22 +248,34 @@ fn main() {
                 string_to_decrypt.as_bytes(),
             );
         }
-        Some("encrypt") => {
-            let string_to_encrypt = match args.value_of("string") {
+        Some(("encrypt", encrypt_args)) => {
+            let string_to_encrypt = match encrypt_args.value_of("string") {
                 Some(words) => words,
                 None => "Hello World!",
             };
-            encrypt_str("keys/public_key.pkcs7.pem", string_to_encrypt.as_bytes());
+            let public_key_path = match encrypt_args.value_of("publickeypath") {
+                Some(words) => words,
+                None => "keys/public_key.pkcs7.pem",
+            };
+            //println!("String Looked up as: {}", &string_to_encrypt);
+            println!("{:?}", &args);
+            println!(
+                "String Looked up as: {}",
+                args.value_of("publickeypath").unwrap()
+            );
+            println!("Pubkey Looked up as: {}", &public_key_path);
+
+            encrypt_str(public_key_path, string_to_encrypt.as_bytes());
         }
-        Some("recrypt") => {
+        Some(("recrypt", recrypt_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();
         }
-        Some("rekey") => {
+        Some(("rekey", rekey_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();
         }
-        Some("edit") => {
+        Some(("edit", edit_args)) => {
             open_editor("Test123");
         }
         None => {

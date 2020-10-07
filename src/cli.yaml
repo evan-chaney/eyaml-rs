@@ -45,7 +45,7 @@ subcommands:
   - encrypt:
       about: Encrypt some data
       args:
-        - public-key-path:
+        - publickeypath:
             short: p
             help: path to find the public key at
             long: public-key-file
