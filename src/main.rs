@@ -80,6 +80,8 @@ mod tests {
             .unwrap()
         );
     }
+
+    //todo: add test with bad file for encrypt
 }
 
 fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
@@ -92,10 +94,6 @@ fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
 
 // Change to return result object
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
-    //let priv_key_file = File::open(&private_key_filename).unwrap();
-    //let mut priv_reader = BufReader::new(priv_key_file);
-    //let mut priv_contents = Vec::new();
-    //priv_reader.read_to_end(&mut priv_contents).unwrap();
     let priv_contents = read_file_contents(private_key_filename)
         .expect("There was an error reading the contents of the private key!");
 
@@ -106,12 +104,8 @@ fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
 
 // Change to return result object
 fn load_x509_file(public_key_filename: &str) -> X509 {
-    //let pub_key_file = File::open(&public_key_filename).unwrap();
-    //let mut pub_reader = BufReader::new(pub_key_file);
-    //let mut pub_contents = Vec::new();
     let mut pub_contents = read_file_contents(public_key_filename)
         .expect("There was an error reading the contents of the public key!");
-    //pub_reader.read_to_end(&mut pub_contents).unwrap();
     let pub_key =
         X509::from_pem(&pub_contents).expect("There was an error parsing the public key!");
     return pub_key;
