@@ -206,8 +206,11 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
 }
 
 fn open_editor(yaml_path: &str) {
+    // Have this try common editors otherwise
     let editor = var("EDITOR").unwrap();
     let mut file_path = temp_dir();
+
+    //the path of the unencrypted file
     file_path.push("editable");
     File::create(&file_path).expect(&format!("Could not create file at {:?}", &file_path));
 
@@ -228,24 +231,41 @@ fn main() {
 
     // Flow for different subcommands
     match args.subcommand() {
-        (("createkeys", Some(createkeys_args))) => {
-            println!("createkeys was specified.");
-            create_keys("keys/public_key.pkcs7.pem", "keys/private_key.pkcs7.pem");
+        ("createkeys", Some(createkeys_args)) => {
+            //println!("createkeys was specified.");
+
+            let public_key_path = match createkeys_args.value_of("public-key-path") {
+                Some(words) => words,
+                None => "keys/public_key.pkcs7.pem",
+            };
+            let private_key_path = match createkeys_args.value_of("private-key-path") {
+                Some(words) => words,
+                None => "keys/private_key.pkcs7.pem",
+            };
+            create_keys(public_key_path, private_key_path);
         }
-        (("decrypt", Some(decrypt_args))) => {
+        ("decrypt", Some(decrypt_args)) => {
             //let string_to_decrypt = args.value_of("string");
             let string_to_decrypt = match args.value_of("string") {
                 Some(words) => words,
                 None => "",
             };
             println!("{}", &string_to_decrypt);
+            let public_key_path = match decrypt_args.value_of("public-key-path") {
+                Some(words) => words,
+                None => "keys/public_key.pkcs7.pem",
+            };
+            let private_key_path = match decrypt_args.value_of("private-key-path") {
+                Some(words) => words,
+                None => "keys/private_key.pkcs7.pem",
+            };
             decrypt_str(
-                "keys/public_key.pkcs7.pem",
-                "keys/private_key.pkcs7.pem",
+                public_key_path,
+                private_key_path,
                 string_to_decrypt.as_bytes(),
             );
         }
-        (("encrypt", Some(encrypt_args))) => {
+        ("encrypt", Some(encrypt_args)) => {
             let string_to_encrypt = match encrypt_args.value_of("string") {
                 Some(words) => words,
                 None => "Hello World!",
@@ -256,18 +276,18 @@ fn main() {
             };
             encrypt_str(public_key_path, string_to_encrypt.as_bytes());
         }
-        (("recrypt", Some(recrypt_args))) => {
+        ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();
         }
-        (("rekey", Some(rekey_args))) => {
+        ("rekey", Some(rekey_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();
         }
-        (("edit", Some(edit_args))) => {
+        ("edit", Some(edit_args)) => {
             open_editor("Test123");
         }
-        (("", none_args)) => {
+        ("", none_args) => {
             println!("No subcommand was specified.");
             println!("{}", args.usage());
         }
