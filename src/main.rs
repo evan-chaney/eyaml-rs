@@ -81,6 +81,25 @@ mod tests {
         );
     }
 
+    // Try to load file that doesn't exist
+    #[test]
+    #[should_panic]
+    fn read_nonexistant_file() {
+        read_file_contents("/totally/not/real/file/path").unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_bad_x509() {
+        let bad_file_path = "badx509.pem";
+        let mut bad_file = File::create(&bad_file_path).unwrap();
+        bad_file
+            .write_all("This is bad formatting".as_bytes())
+            .unwrap();
+
+        load_x509_file(&bad_file_path);
+    }
+
     //todo: add test with bad file for encrypt
 }
 
