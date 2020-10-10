@@ -12,3 +12,7 @@ Cargo.lock
 
 # Keys directory
 keys/
+
+# Test artifacts
+test.tmp
+

@@ -29,7 +29,12 @@ mod tests {
     // Pull all the imports from the rest of this file
     use super::*;
 
-    // todo switch this to dump test artifacts in test.tmp dir (and make sure it exists)
+    fn setup_test() {
+        let test_dir = "test.tmp";
+        if !Path::new(&test_dir).parent().unwrap().is_dir() {
+            create_dir(Path::new(&test_dir).parent().unwrap()).unwrap();
+        }
+    }
 
     #[test]
     fn test_key_creation() {
@@ -93,7 +98,8 @@ mod tests {
     #[test]
     #[should_panic]
     fn parse_bad_x509() {
-        let bad_file_path = "test/badx509.pem";
+        setup_test();
+        let bad_file_path = "test.tmp/badx509.pem";
         let mut bad_file = File::create(&bad_file_path).unwrap();
         bad_file
             .write_all("This is bad formatting".as_bytes())
