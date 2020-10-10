@@ -29,6 +29,8 @@ mod tests {
     // Pull all the imports from the rest of this file
     use super::*;
 
+    // todo switch this to dump test artifacts in test.tmp dir (and make sure it exists)
+
     #[test]
     fn test_key_creation() {
         let pub_name = "keys/pubtest.pkcs7.pem";
@@ -91,7 +93,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn parse_bad_x509() {
-        let bad_file_path = "badx509.pem";
+        let bad_file_path = "test/badx509.pem";
         let mut bad_file = File::create(&bad_file_path).unwrap();
         bad_file
             .write_all("This is bad formatting".as_bytes())
@@ -100,7 +102,9 @@ mod tests {
         load_x509_file(&bad_file_path);
     }
 
-    //todo: add test with bad file for encrypt
+    // todo: add test with bad file for encrypt
+    // todo: switch to something like speculate.rs for test teardown support
+    //  (aka delete some of these files that are used)
 }
 
 fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
