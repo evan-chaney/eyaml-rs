@@ -31,15 +31,16 @@ mod tests {
 
     fn setup_test() {
         let test_dir = "test.tmp";
-        if !Path::new(&test_dir).parent().unwrap().is_dir() {
-            create_dir(Path::new(&test_dir).parent().unwrap()).unwrap();
+        if !Path::new(&test_dir).is_dir() {
+            create_dir(Path::new(&test_dir)).unwrap();
         }
     }
 
     #[test]
     fn test_key_creation() {
-        let pub_name = "keys/pubtest.pkcs7.pem";
-        let priv_name = "keys/privtest.pkcs7.pem";
+        setup_test();
+        let pub_name = "test.tmp/pubtest.pkcs7.pem";
+        let priv_name = "test.tmp/privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
 
         //        // Verify cert is signed by key
@@ -71,8 +72,9 @@ mod tests {
 
     #[test]
     fn encrypt_decrypt() {
-        let pub_name = "keys/pubtest.pkcs7.pem";
-        let priv_name = "keys/privtest.pkcs7.pem";
+        setup_test();
+        let pub_name = "test.tmp/pubtest.pkcs7.pem";
+        let priv_name = "test.tmp/privtest.pkcs7.pem";
         create_keys(&pub_name, &priv_name);
 
         let test_string = "abcd1234";
@@ -108,6 +110,13 @@ mod tests {
         load_x509_file(&bad_file_path);
     }
 
+    #[test]
+    #[should_panic]
+    fn encrypt_with_missing_key() {
+        let input_array: [u8; 0] = [];
+        encrypt_str("/totally/not/real/file/path", &input_array);
+        return ();
+    }
     // todo: add test with bad file for encrypt
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
