@@ -38,7 +38,12 @@ subcommands:
         - string:
             short: s
             long: string
-            help: String to encrypt
+            help: String to decrypt
+            takes_value: true
+        - file:
+            short: f
+            help: File to decrypt
+            long: file
             takes_value: true
   - edit:
       about: Edit an eyaml file
@@ -54,6 +59,11 @@ subcommands:
             short: s
             long: string
             help: String to encrypt
+            takes_value: true
+        - file:
+            short: f
+            help: File to encrypt
+            long: file
             takes_value: true
   - recrypt:
       about: Re-encrypt and eyaml file
