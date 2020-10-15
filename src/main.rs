@@ -131,7 +131,7 @@ fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
 
 // Change to return result object
 fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
-    let priv_contents = read_file_contents(private_key_filename)
+    let priv_contents: Vec<u8> = read_file_contents(private_key_filename)
         .expect("There was an error reading the contents of the private key!");
 
     let priv_key = Rsa::private_key_from_pem(&priv_contents)
@@ -141,9 +141,9 @@ fn load_rsa_file_private(private_key_filename: &str) -> Rsa<Private> {
 
 // Change to return result object
 fn load_x509_file(public_key_filename: &str) -> X509 {
-    let mut pub_contents = read_file_contents(public_key_filename)
+    let pub_contents: Vec<u8> = read_file_contents(public_key_filename)
         .expect("There was an error reading the contents of the public key!");
-    let pub_key =
+    let pub_key: X509 =
         X509::from_pem(&pub_contents).expect("There was an error parsing the public key!");
     return pub_key;
 }
@@ -176,7 +176,10 @@ fn decrypt_str(
 ) -> Vec<u8> {
     let priv_key = load_rsa_file_private(private_key_filename);
     let pub_cert = load_x509_file(public_key_filename);
-    let cipher_content = Pkcs7::from_pem(pkcs7_ciphertext).unwrap();
+    let cipher_content = Pkcs7::from_pem(pkcs7_ciphertext).expect(&format!(
+        "Unable to parse PKCS7 from: {:?}",
+        from_utf8(&pkcs7_ciphertext).unwrap()
+    ));
 
     let decrypted_content = cipher_content
         .decrypt(
@@ -239,6 +242,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     private_key_file
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
+    // print the paths that the keys were generated at
     println!("Keys generated and written to files!")
 }
 
