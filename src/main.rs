@@ -153,15 +153,17 @@ fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::P
     println!("Using public key: {}", &public_key_filename);
     let encryption_algo: Cipher = Cipher::aes_256_cbc();
     let cert_content = load_x509_file(public_key_filename);
-    let mut cert_stack = Stack::new().unwrap();
-    cert_stack.push(cert_content).unwrap();
+    let mut cert_stack = Stack::new().expect("There was an error creating a new cert stack");
+    cert_stack
+        .push(cert_content)
+        .expect("There was an error pushing the cert to the cert stack");
     let encrypted_pkcs7 = Pkcs7::encrypt(
         cert_stack.as_ref(),
         plaintext,
         encryption_algo,
         Pkcs7Flags::empty(),
     )
-    .unwrap();
+    .expect("There was an error encrypting the value!");
     println!(
         "New ciphertext: {:?}",
         from_utf8(&encrypted_pkcs7.as_ref().to_pem().unwrap()).unwrap()
@@ -200,31 +202,39 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     // openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/'
 
     // Create RSA private key
-    let private_key = Rsa::generate(2048).unwrap();
+    let private_key = Rsa::generate(2048).expect("There was an error generating a new RSA key");
 
     // Generate cert and sign
 
-    let mut x509 = X509Builder::new().unwrap();
+    let mut x509 = X509Builder::new().expect("There was an error initializing the X509 builder.");
 
     // Create ref for our timeperiod
-    let not_after = Asn1Time::days_from_now(100000).unwrap();
-    x509.set_not_after(&not_after).unwrap();
-    x509.set_not_before(Asn1Time::days_from_now(0).unwrap().as_ref())
-        .unwrap();
+    let not_after = Asn1Time::days_from_now(100000).expect("Unable to get Asn1Time + 10000 days");
+    x509.set_not_after(&not_after)
+        .expect("Unable to set expiry on cert");
+    x509.set_not_before(
+        Asn1Time::days_from_now(0)
+            .expect("Error setting validity date on cert")
+            .as_ref(),
+    )
+    .unwrap();
 
     // Build our name
-    let mut x509_name = X509NameBuilder::new().unwrap();
-    x509_name.append_entry_by_text("CN", "/").unwrap();
+    let mut x509_name = X509NameBuilder::new().expect("Error initializing X509NameBuilder");
+    x509_name
+        .append_entry_by_text("CN", "/")
+        .expect("Error adding CN to cert");
     let x509_name = x509_name.build();
-    x509.set_subject_name(&x509_name).unwrap();
-    x509.set_version(2).unwrap();
+    x509.set_subject_name(&x509_name)
+        .expect("Error setting subject name on cert");
+    x509.set_version(2).expect("Error setting X509 version");
     x509.set_pubkey(&PKey::from_rsa(private_key.clone()).unwrap())
         .unwrap();
     x509.sign(
         PKey::from_rsa(private_key.clone()).unwrap().as_ref(),
         MessageDigest::sha256(),
     )
-    .unwrap();
+    .expect("Error signing X509 certificate");
     // todo add error messaging if the signing fails
     let signed_x509: X509 = x509.build();
 
