@@ -282,8 +282,8 @@ fn main() {
             create_keys(public_key_path, private_key_path);
         }
         ("decrypt", Some(decrypt_args)) => {
-            //let string_to_decrypt = args.value_of("string");
-            let string_to_decrypt = match args.value_of("string") {
+            let mut file_supplied = false;
+            let mut string_to_decrypt = match args.value_of("string") {
                 Some(words) => words,
                 None => "",
             };
@@ -296,6 +296,19 @@ fn main() {
                 Some(words) => words,
                 None => "keys/private_key.pkcs7.pem",
             };
+            let file_to_decrypt: String = match decrypt_args.value_of("file") {
+                Some(file) => {
+                    file_supplied = true;
+                    match read_to_string(&file) {
+                        Ok(file_contents) => file_contents.to_owned(),
+                        Err(e) => String::from("Hello world!"),
+                    }
+                }
+                None => String::from("Hello World!"),
+            };
+            if file_supplied {
+                string_to_decrypt = file_to_decrypt.as_ref();
+            }
             decrypt_str(
                 public_key_path,
                 private_key_path,
@@ -303,7 +316,8 @@ fn main() {
             );
         }
         ("encrypt", Some(encrypt_args)) => {
-            let string_to_encrypt = match encrypt_args.value_of("string") {
+            let mut file_supplied = false;
+            let mut string_to_encrypt = match encrypt_args.value_of("string") {
                 Some(words) => words,
                 None => "Hello World!",
             };
@@ -311,15 +325,21 @@ fn main() {
                 Some(words) => words,
                 None => "keys/public_key.pkcs7.pem",
             };
-            let file_to_encrypt: &[u8] = match encrypt_args.value_of("file") {
-                Some(file) => match read_to_string(&file) {
-                    Ok(file_contents) => &file_contents.as_bytes().to_owned(),
-                    Err(e) => "".as_bytes().as_ref(),
-                },
-                None => "".as_bytes(),
-            };
 
-            encrypt_str(public_key_path, file_to_encrypt);
+            let file_to_encrypt: String = match encrypt_args.value_of("file") {
+                Some(file) => {
+                    file_supplied = true;
+                    match read_to_string(&file) {
+                        Ok(file_contents) => file_contents.to_owned(),
+                        Err(e) => String::from("Hello world!"),
+                    }
+                }
+                None => String::from("Hello World!"),
+            };
+            if file_supplied {
+                string_to_encrypt = file_to_encrypt.as_ref();
+            }
+            encrypt_str(public_key_path, &string_to_encrypt.as_bytes());
         }
         ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
