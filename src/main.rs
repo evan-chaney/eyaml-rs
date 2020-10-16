@@ -315,7 +315,7 @@ fn main() {
                     file_supplied = true;
                     match read_to_string(&file) {
                         Ok(file_contents) => file_contents.to_owned(),
-                        Err(e) => String::from("Hello world!"),
+                        Err(_) => String::from("Hello world!"),
                     }
                 }
                 None => String::from("Hello World!"),
@@ -345,7 +345,7 @@ fn main() {
                     file_supplied = true;
                     match read_to_string(&file) {
                         Ok(file_contents) => file_contents.to_owned(),
-                        Err(e) => String::from("Hello world!"),
+                        Err(_) => String::from("Hello world!"),
                     }
                 }
                 None => String::from("Hello World!"),
