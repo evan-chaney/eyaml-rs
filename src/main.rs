@@ -78,13 +78,14 @@ mod tests {
         create_keys(&pub_name, &priv_name);
 
         let test_string = "abcd1234";
-        let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes());
+        let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes(), &false);
         assert_eq!(
             test_string,
             from_utf8(&decrypt_str(
                 &pub_name,
                 &priv_name,
-                &cipherstring.as_ref().to_pem().unwrap()
+                &cipherstring.as_ref().to_pem().unwrap(),
+                &false
             ))
             .unwrap()
         );
@@ -114,7 +115,7 @@ mod tests {
     #[should_panic]
     fn encrypt_with_missing_key() {
         let input_array: [u8; 0] = [];
-        encrypt_str("/totally/not/real/file/path", &input_array);
+        encrypt_str("/totally/not/real/file/path", &input_array, &false);
         return ();
     }
     // todo: switch to something like speculate.rs for test teardown support
