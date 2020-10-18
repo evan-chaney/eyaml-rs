@@ -35,11 +35,11 @@ subcommands:
             short: k
             long: private-key-file
             takes_value: true
-        - string:
-            short: s
-            long: string
-            help: String to decrypt
-            takes_value: true
+  //      - string:
+  //          short: s
+  //          long: string
+  //          help: String to decrypt
+  //          takes_value: true
         - file:
             short: f
             help: File to decrypt
