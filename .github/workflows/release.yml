@@ -29,10 +29,10 @@ jobs:
     strategy:
       matrix:
         target:
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            cross: false
-            binary_path: target/x86_64-pc-windows-msvc/release/eyaml-rs.exe
+          #          - target: x86_64-pc-windows-msvc
+          #            os: windows-latest
+          #            cross: false
+          #            binary_path: target/x86_64-pc-windows-msvc/release/eyaml-rs.exe
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             cross: false
@@ -87,11 +87,11 @@ jobs:
         run: |
           tar czvf eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.tar.gz -C package/ .
 
-      - name: Create Archive (Windows)
-        if: matrix.target.os == 'windows-latest'
-        run: |
-          cd package; 7z.exe a ../eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip .
-
+          #      - name: Create Archive (Windows)
+          #        if: matrix.target.os == 'windows-latest'
+          #        run: |
+          #          cd package; 7z.exe a ../eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip .
+          #
       - name: Upload Release Asset
         if: matrix.target.os != 'windows-latest'
         uses: actions/upload-release-asset@v1
@@ -103,13 +103,13 @@ jobs:
           asset_name: eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.tar.gz
           asset_content_type: application/x-gzip
 
-      - name: Upload Release Asset (Windows)
-        if: matrix.target.os == 'windows-latest'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip
-          asset_name: eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip
-          asset_content_type: application/zip
+          # - name: Upload Release Asset (Windows)
+          #   if: matrix.target.os == 'windows-latest'
+          #   uses: actions/upload-release-asset@v1
+          #   env:
+          #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #   with:
+          #     upload_url: ${{ needs.create-release.outputs.upload_url }}
+          #     asset_path: ./eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip
+          #     asset_name: eyaml-rs-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target.target }}.zip
+          #     asset_content_type: application/zip
