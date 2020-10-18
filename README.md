@@ -3,7 +3,8 @@ Rust port of the EYAML Ruby Gem. Work in progress!
 
 ## Installation
 
-Simply run ```cargo build --release``` from the root of the repo. (Requires cargo be [installed](https://rustup.rs/)). This will create eyaml-rs at the `target/release/eyaml-rs`. This binary can be symlinked to a directory in your path to be invoked directly.
+Simply run ```cargo install eyaml-rs``` to install from [crates.io](crates.io).
+Otherwise you can build from source by running ```cargo build --release``` from the root of the repo. (Requires cargo be [installed](https://rustup.rs/)). This will create eyaml-rs at the `target/release/eyaml-rs`. This binary can be symlinked to a directory in your path to be invoked directly.
 
 ## Usage
 
@@ -17,7 +18,7 @@ If a custom path is not specified, the keys are generated in ./keys, which is al
 ### Encrypt a file
 ```
 $ echo "Here is some text" > encrypt_me.txt
-$ target/release/eyaml-rs encrypt -f encrypt_me.txt 
+$ target/release/eyaml-rs encrypt -f encrypt_me.txt
 -----BEGIN PKCS7-----
 MIIBiQYJKoZIhvcNAQcDoIIBejCCAXYCAQAxggEhMIIBHQIBADAFMAACAQAwDQYJ
 KoZIhvcNAQEBBQAEggEAh7lHWs2KeuoR8hU9b7B+iENK/6I3JWBwPVc49BySdokI
@@ -33,7 +34,7 @@ ZdZMVyiNVzh9Is/tBQ==
 
 ### Decrypt a file
 ```
-$ target/release/eyaml-rs decrypt -f decrypt_me.enc 
+$ target/release/eyaml-rs decrypt -f decrypt_me.enc
 
 Here is some text
 ```
