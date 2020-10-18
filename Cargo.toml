@@ -18,3 +18,12 @@ yaml-rust = ">= 0.4.1"
 clap = { version = "2.33.3", features = ["yaml", "color", "suggestions"] }
 openssl = "0.10.30"
 
+
+[package.metadata.rpm]
+package = "eyaml-rs"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[package.metadata.rpm.targets]
+eyaml-rs = { path = "/usr/bin/eyaml-rs" }
