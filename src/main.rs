@@ -149,8 +149,14 @@ fn load_x509_file(public_key_filename: &str) -> X509 {
 }
 
 //todo return Pkcs7
-fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::Pkcs7 {
-    println!("Using public key: {}", &public_key_filename);
+fn encrypt_str(
+    public_key_filename: &str,
+    plaintext: &[u8],
+    verbose: &bool,
+) -> openssl::pkcs7::Pkcs7 {
+    if verbose.clone() {
+        println!("Using public key: {}", &public_key_filename);
+    }
     let encryption_algo: Cipher = Cipher::aes_256_cbc();
     let cert_content = load_x509_file(public_key_filename);
     let mut cert_stack = Stack::new().expect("There was an error creating a new cert stack");
@@ -164,8 +170,11 @@ fn encrypt_str(public_key_filename: &str, plaintext: &[u8]) -> openssl::pkcs7::P
         Pkcs7Flags::empty(),
     )
     .expect("There was an error encrypting the value!");
+    if verbose.clone() {
+        print! {"New ciphertext: "}
+    }
     println!(
-        "New ciphertext: {:?}",
+        "{:#}",
         from_utf8(&encrypted_pkcs7.as_ref().to_pem().unwrap()).unwrap()
     );
     return encrypted_pkcs7;
@@ -175,6 +184,7 @@ fn decrypt_str(
     public_key_filename: &str,
     private_key_filename: &str,
     pkcs7_ciphertext: &[u8],
+    verbose: &bool,
 ) -> Vec<u8> {
     let priv_key = load_rsa_file_private(private_key_filename);
     let pub_cert = load_x509_file(public_key_filename);
@@ -190,10 +200,10 @@ fn decrypt_str(
             Pkcs7Flags::empty(),
         )
         .unwrap();
-    println!(
-        "Decrypted content: {:?}",
-        from_utf8(decrypted_content.as_ref()).unwrap()
-    );
+    if verbose.clone() {
+        print!("Decrypted content: ")
+    }
+    println!("{:}", from_utf8(decrypted_content.as_ref()).unwrap());
     return decrypted_content;
 }
 
@@ -280,6 +290,10 @@ fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
     let args = App::from(cli_yaml).get_matches();
 
+    let verbose = match args.value_of("verbose") {
+        Some(_) => true,
+        None => false,
+    };
     // Flow for different subcommands
     match args.subcommand() {
         ("createkeys", Some(createkeys_args)) => {
@@ -327,6 +341,7 @@ fn main() {
                 public_key_path,
                 private_key_path,
                 string_to_decrypt.as_bytes(),
+                &verbose,
             );
         }
         ("encrypt", Some(encrypt_args)) => {
@@ -353,7 +368,7 @@ fn main() {
             if file_supplied {
                 string_to_encrypt = file_to_encrypt.as_ref();
             }
-            encrypt_str(public_key_path, &string_to_encrypt.as_bytes());
+            encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
         }
         ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
