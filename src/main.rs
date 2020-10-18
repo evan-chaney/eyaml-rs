@@ -269,7 +269,11 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
 
 fn open_editor(yaml_path: &str) {
     // Have this try common editors otherwise
-    let editor = var("EDITOR").unwrap();
+    let editor: String = match var("EDITOR") {
+        Ok(editor) => editor.clone(),
+        Err(_) => "vim".to_string(),
+    };
+
     let mut file_path = temp_dir();
 
     //the path of the unencrypted file
