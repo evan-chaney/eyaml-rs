@@ -1,5 +1,5 @@
 extern crate yaml_rust;
-use clap::{load_yaml, App};
+use clap::{load_yaml, App, ArgMatches};
 extern crate openssl;
 
 use std::io::prelude::*;
@@ -303,36 +303,33 @@ fn open_editor(yaml_path: &str) {
 }
 
 // Maybe this isn't the right way to do this
-fn create_keys_cli() -> u8 {
-    return 0;
+fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
+    let public_key_path = match createkeys_args.value_of("public-key-path") {
+        Some(words) => words,
+        None => "keys/public_key.pkcs7.pem",
+    };
+    let private_key_path = match createkeys_args.value_of("private-key-path") {
+        Some(words) => words,
+        None => "keys/private_key.pkcs7.pem",
+    };
+    create_keys(public_key_path, private_key_path);
 }
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
     let args = App::from(cli_yaml).get_matches();
 
-    let verbose = match args.value_of("verbose") {
-        Some(_) => true,
-        None => false,
-    };
+    let verbose = args.is_present("verbose");
+
     // Flow for different subcommands
     match args.subcommand() {
         ("createkeys", Some(createkeys_args)) => {
+            create_keys_cli(createkeys_args, verbose.clone());
             //println!("createkeys was specified.");
-
-            let public_key_path = match createkeys_args.value_of("public-key-path") {
-                Some(words) => words,
-                None => "keys/public_key.pkcs7.pem",
-            };
-            let private_key_path = match createkeys_args.value_of("private-key-path") {
-                Some(words) => words,
-                None => "keys/private_key.pkcs7.pem",
-            };
-            create_keys(public_key_path, private_key_path);
         }
         ("decrypt", Some(decrypt_args)) => {
             let mut file_supplied = false;
-            let mut string_to_decrypt = match args.value_of("string") {
+            let mut string_to_decrypt = match decrypt_args.value_of("string") {
                 Some(words) => words,
                 None => "",
             };
@@ -393,8 +390,38 @@ fn main() {
         }
         ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
-            unimplemented!();
+            let mut file_supplied = false;
+            let mut string_to_recrypt = match recrypt_args.value_of("string") {
+                Some(words) => words,
+                None => "",
+            };
+            println!("{}", &string_to_recrypt);
+            let public_key_path = match recrypt_args.value_of("public-key-path") {
+                Some(words) => words,
+                None => "keys/public_key.pkcs7.pem",
+            };
+            let private_key_path = match recrypt_args.value_of("private-key-path") {
+                Some(words) => words,
+                None => "keys/private_key.pkcs7.pem",
+            };
+            let file_to_recrypt: String = match recrypt_args.value_of("file") {
+                Some(file) => {
+                    file_supplied = true;
+                    match read_to_string(&file) {
+                        Ok(file_contents) => file_contents.to_owned(),
+                        Err(_) => String::from("Hello world!"),
+                    }
+                }
+                None => String::from("Hello World!"),
+            };
+            if file_supplied {
+                string_to_recrypt = file_to_recrypt.as_ref();
+            }
+            //decrypt
+            //
+            //encrypt
         }
+
         ("rekey", Some(rekey_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();

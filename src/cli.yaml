@@ -8,6 +8,7 @@ args:
       short: v
       long: verbose
       help: Enables verbose mode
+      takes_value: false
 subcommands:
   - createkeys:
       about: Create new encryption keys
