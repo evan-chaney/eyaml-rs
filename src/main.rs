@@ -266,7 +266,10 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
     // print the paths that the keys were generated at
-    println!("Keys generated and written to files!")
+    println!(
+        "Keys generated and written to {} and {}.",
+        &private_key_filename, &public_key_filename
+    )
 }
 
 fn open_editor(yaml_path: &str) {
@@ -317,7 +320,7 @@ fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
-    let mut app = App::from(cli_yaml).version(crate_version!());
+    let app = App::from(cli_yaml).version(crate_version!());
     let args = app.get_matches();
 
     let verbose = args.is_present("verbose");
