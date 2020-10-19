@@ -124,9 +124,15 @@ mod tests {
 
     #[test]
     fn cli_encrypt_string() {
+        setup_test();
         let matches = ArgMatches::new();
         //   let mut args: HashMap<&str, MatchedArg> = HashMap::new();
-        // matches.args = args;
+        matches
+            .args
+            .insert("public-key-path", "test.tmp/pubtest.pkcs7.pem");
+        matches
+            .args
+            .insert("private-key-path", "test.tmp/privtest.pkcs7.pem");
         encrypt_cli(&matches, false);
     }
 
