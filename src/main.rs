@@ -13,6 +13,7 @@ use openssl::rsa::Rsa;
 use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
@@ -120,6 +121,15 @@ mod tests {
         encrypt_str("/totally/not/real/file/path", &input_array, &false);
         return ();
     }
+
+    #[test]
+    fn cli_encrypt_string() {
+        let matches = ArgMatches::new();
+        //   let mut args: HashMap<&str, MatchedArg> = HashMap::new();
+        // matches.args = args;
+        encrypt_cli(&matches, false);
+    }
+
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
 }
