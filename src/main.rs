@@ -318,6 +318,70 @@ fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
     create_keys(public_key_path, private_key_path);
 }
 
+fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
+    let mut file_supplied = false;
+    let mut string_to_encrypt = match encrypt_args.value_of("string") {
+        Some(words) => words,
+        None => "Hello World!",
+    };
+    let public_key_path = match encrypt_args.value_of("public-key-path") {
+        Some(words) => words,
+        None => "keys/public_key.pkcs7.pem",
+    };
+
+    let file_to_encrypt: String = match encrypt_args.value_of("file") {
+        Some(file) => {
+            file_supplied = true;
+            match read_to_string(&file) {
+                Ok(file_contents) => file_contents.to_owned(),
+                Err(_) => String::from("Hello world!"),
+            }
+        }
+        None => String::from("Hello World!"),
+    };
+    if file_supplied {
+        string_to_encrypt = file_to_encrypt.as_ref();
+    }
+    encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
+}
+
+fn decrypt_cli(decrypt_args: &ArgMatches, verbose: bool) {
+    let mut file_supplied = false;
+    let mut string_to_decrypt = match decrypt_args.value_of("string") {
+        Some(words) => words,
+        None => "",
+    };
+    println!("{}", &string_to_decrypt);
+    let public_key_path = match decrypt_args.value_of("public-key-path") {
+        Some(words) => words,
+        None => "keys/public_key.pkcs7.pem",
+    };
+    let private_key_path = match decrypt_args.value_of("private-key-path") {
+        Some(words) => words,
+        None => "keys/private_key.pkcs7.pem",
+    };
+    let file_to_decrypt: String = match decrypt_args.value_of("file") {
+        Some(file) => {
+            file_supplied = true;
+            match read_to_string(&file) {
+                Ok(file_contents) => file_contents.to_owned(),
+                Err(_) => String::from("Hello world!"),
+            }
+        }
+        None => String::from("Hello World!"),
+    };
+    if file_supplied {
+        string_to_decrypt = file_to_decrypt.as_ref();
+    }
+    decrypt_str(
+        public_key_path,
+        private_key_path,
+        string_to_decrypt.as_bytes(),
+        &verbose,
+    );
+}
+fn edit_cli(edit_args: &ArgMatches, verbose: bool) {}
+
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
     let app = App::from(cli_yaml).version(crate_version!());
@@ -332,65 +396,10 @@ fn main() {
             //println!("createkeys was specified.");
         }
         ("decrypt", Some(decrypt_args)) => {
-            let mut file_supplied = false;
-            let mut string_to_decrypt = match decrypt_args.value_of("string") {
-                Some(words) => words,
-                None => "",
-            };
-            println!("{}", &string_to_decrypt);
-            let public_key_path = match decrypt_args.value_of("public-key-path") {
-                Some(words) => words,
-                None => "keys/public_key.pkcs7.pem",
-            };
-            let private_key_path = match decrypt_args.value_of("private-key-path") {
-                Some(words) => words,
-                None => "keys/private_key.pkcs7.pem",
-            };
-            let file_to_decrypt: String = match decrypt_args.value_of("file") {
-                Some(file) => {
-                    file_supplied = true;
-                    match read_to_string(&file) {
-                        Ok(file_contents) => file_contents.to_owned(),
-                        Err(_) => String::from("Hello world!"),
-                    }
-                }
-                None => String::from("Hello World!"),
-            };
-            if file_supplied {
-                string_to_decrypt = file_to_decrypt.as_ref();
-            }
-            decrypt_str(
-                public_key_path,
-                private_key_path,
-                string_to_decrypt.as_bytes(),
-                &verbose,
-            );
+            decrypt_cli(decrypt_args, verbose.clone());
         }
         ("encrypt", Some(encrypt_args)) => {
-            let mut file_supplied = false;
-            let mut string_to_encrypt = match encrypt_args.value_of("string") {
-                Some(words) => words,
-                None => "Hello World!",
-            };
-            let public_key_path = match encrypt_args.value_of("public-key-path") {
-                Some(words) => words,
-                None => "keys/public_key.pkcs7.pem",
-            };
-
-            let file_to_encrypt: String = match encrypt_args.value_of("file") {
-                Some(file) => {
-                    file_supplied = true;
-                    match read_to_string(&file) {
-                        Ok(file_contents) => file_contents.to_owned(),
-                        Err(_) => String::from("Hello world!"),
-                    }
-                }
-                None => String::from("Hello World!"),
-            };
-            if file_supplied {
-                string_to_encrypt = file_to_encrypt.as_ref();
-            }
-            encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
+            encrypt_cli(encrypt_args, verbose.clone());
         }
         ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
