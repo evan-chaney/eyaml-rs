@@ -17,6 +17,7 @@ exclude = ["keys/*"]
 yaml-rust = ">= 0.4.1"
 clap = { version = "2.33.3", features = ["yaml", "color", "suggestions"] }
 openssl = "0.10.30"
+tempfile = "3.1.0"
 
 
 [package.metadata.rpm]
