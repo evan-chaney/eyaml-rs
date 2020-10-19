@@ -47,6 +47,12 @@ subcommands:
             takes_value: true
   - edit:
       about: Edit an eyaml file
+      args:
+        - file:
+            short: f
+            help: File to decrypt and edit
+            long: file
+            takes_value: true
   - encrypt:
       about: Encrypt some data
       args:

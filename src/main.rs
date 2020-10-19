@@ -13,14 +13,16 @@ use openssl::rsa::Rsa;
 use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
+use std::ffi::OsStr;
 use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
 use std::str::from_utf8;
 use std::{
     env::{temp_dir, var},
     io::Read,
-    process::Command,
+    process::{exit, Command},
 };
+use tempfile::{tempfile, NamedTempFile};
 
 #[cfg(test)]
 mod tests {
@@ -273,15 +275,29 @@ fn open_editor(yaml_path: &str) {
         Ok(editor) => editor.clone(),
         Err(_) => "vim".to_string(),
     };
-
-    let mut file_path = temp_dir();
+    let src_yaml_path = Path::new(yaml_path);
+    if !src_yaml_path.exists()
+        || !([OsStr::new("yaml"), OsStr::new("yml")].contains(
+            &src_yaml_path
+                .extension()
+                .unwrap_or_else(|| OsStr::new("nothing")),
+        ))
+    {
+        println!("{} does not appear to be a valid YAML file.", &yaml_path);
+        exit(1);
+    }
 
     //the path of the unencrypted file
-    file_path.push("editable");
-    File::create(&file_path).expect(&format!("Could not create file at {:?}", &file_path));
+    let unencrypted_file = NamedTempFile::new().unwrap_or_else(|e| {
+        println!("Could not create temp file at {}", e);
+        exit(1);
+    });
+
+    // Unencrypt file
+    // todo
 
     Command::new(editor)
-        .arg(&file_path)
+        .arg(&unencrypted_file.path())
         .status()
         .expect("Something went wrong");
 }
@@ -384,7 +400,11 @@ fn main() {
             unimplemented!();
         }
         ("edit", Some(edit_args)) => {
-            open_editor("Test123");
+            let input_file = match edit_args.value_of("file") {
+                Some(f) => f,
+                None => "Test123",
+            };
+            open_editor(&input_file);
         }
         ("", none_args) => {
             println!("No subcommand was specified.");
