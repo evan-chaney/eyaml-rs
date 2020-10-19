@@ -1,6 +1,5 @@
 ---
 name: eyaml-rs
-version: "0.1.1"
 author: Evan Chaney <evanachaney@gmail.com>
 about: EYAML CLI implementation in Rust
 args:

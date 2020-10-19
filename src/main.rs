@@ -1,5 +1,5 @@
 extern crate yaml_rust;
-use clap::{load_yaml, App, ArgMatches};
+use clap::{crate_version, load_yaml, App, ArgMatches};
 extern crate openssl;
 
 use std::io::prelude::*;
@@ -317,7 +317,8 @@ fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
-    let args = App::from(cli_yaml).get_matches();
+    let mut app = App::from(cli_yaml).version(crate_version!());
+    let args = app.get_matches();
 
     let verbose = args.is_present("verbose");
 
