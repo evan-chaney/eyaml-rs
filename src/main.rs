@@ -14,7 +14,7 @@ use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::collections::HashMap;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
 use std::str::from_utf8;
@@ -28,6 +28,7 @@ use tempfile::{tempfile, NamedTempFile};
 #[cfg(test)]
 mod tests {
 
+    use std::env::set_var;
     use std::fs::remove_file;
     // Pull all the imports from the rest of this file
     use super::*;
@@ -122,20 +123,31 @@ mod tests {
         return ();
     }
 
+    //  #[test]
+    //  fn cli_encrypt_string() {
+    //      setup_test();
+    //      let matches = ArgMatches::new();
+    //      //   let mut args: HashMap<&str, MatchedArg> = HashMap::new();
+    //      matches
+    //          .args
+    //          .insert("public-key-path", "test.tmp/pubtest.pkcs7.pem");
+    //      matches
+    //          .args
+    //          .insert("private-key-path", "test.tmp/privtest.pkcs7.pem");
+    //      encrypt_cli(&matches, false);
+    //  }
+
     #[test]
-    fn cli_encrypt_string() {
-        setup_test();
-        let matches = ArgMatches::new();
-        //   let mut args: HashMap<&str, MatchedArg> = HashMap::new();
-        matches
-            .args
-            .insert("public-key-path", "test.tmp/pubtest.pkcs7.pem");
-        matches
-            .args
-            .insert("private-key-path", "test.tmp/privtest.pkcs7.pem");
-        encrypt_cli(&matches, false);
+    fn find_editor_test() {
+        find_editor_path();
     }
 
+    #[test]
+    fn find_editor_custom() {
+        let new_editor = "TESTEDITOR";
+        set_var("EDITOR", &new_editor);
+        assert_eq!(find_editor_path(), new_editor.to_string());
+    }
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
 }
@@ -288,20 +300,37 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
     )
 }
 
-fn open_editor(yaml_path: &str) {
+fn find_editor_path() -> String {
     // Have this try common editors otherwise
     let editor: String = match var("EDITOR") {
         Ok(editor) => editor.clone(),
         Err(_) => "vim".to_string(),
     };
-    let src_yaml_path = Path::new(yaml_path);
-    if !src_yaml_path.exists()
-        || !([OsStr::new("yaml"), OsStr::new("yml")].contains(
-            &src_yaml_path
-                .extension()
-                .unwrap_or_else(|| OsStr::new("nothing")),
+    return editor;
+}
+
+fn validate_file_extension(src_path: &str, extensions: Vec<OsString>) -> bool {
+    let src = Path::new(src_path);
+    let failure_var: OsString = OsString::from("nothing");
+    if !src.exists()
+        || !(extensions.contains(
+            &src.extension()
+                .unwrap_or_else(|| &failure_var)
+                .to_os_string(),
         ))
     {
+        return false;
+    }
+    return true;
+}
+
+fn open_editor(yaml_path: &str) {
+    let editor = find_editor_path();
+    let src_yaml_path = Path::new(yaml_path);
+    if !validate_file_extension(
+        &yaml_path,
+        vec![OsString::from("yaml"), OsString::from("yml")],
+    ) {
         println!("{} does not appear to be a valid YAML file.", &yaml_path);
         exit(1);
     }
