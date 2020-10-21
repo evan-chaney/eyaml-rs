@@ -238,7 +238,7 @@ fn decrypt_str(
     return decrypted_content;
 }
 
-fn create_keys(public_key_filename: &str, private_key_filename: &str) {
+fn create_keys(public_key_filename: &str, private_key_filename: &str, verbose: &bool) {
     // Basically doing the same as this openssl command
     // openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/'
 
@@ -294,10 +294,12 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str) {
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
     // print the paths that the keys were generated at
-    println!(
-        "Keys generated and written to {} and {}.",
-        &private_key_filename, &public_key_filename
-    )
+    if verbose {
+        println!(
+            "Keys generated and written to {} and {}.",
+            &private_key_filename, &public_key_filename
+        )
+    }
 }
 
 fn find_editor_path() -> String {
@@ -360,7 +362,7 @@ fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
         Some(words) => words,
         None => "keys/private_key.pkcs7.pem",
     };
-    create_keys(public_key_path, private_key_path);
+    create_keys(public_key_path, private_key_path, &verbose);
 }
 
 fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
