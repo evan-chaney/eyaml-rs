@@ -45,7 +45,7 @@ mod tests {
         setup_test();
         let pub_name = "test.tmp/pubtest.pkcs7.pem";
         let priv_name = "test.tmp/privtest.pkcs7.pem";
-        create_keys(&pub_name, &priv_name);
+        create_keys(&pub_name, &priv_name, &false);
 
         //        // Verify cert is signed by key
         //        let pub_key_file = File::open(&pub_name).unwrap();
@@ -79,7 +79,7 @@ mod tests {
         setup_test();
         let pub_name = "test.tmp/pubtest.pkcs7.pem";
         let priv_name = "test.tmp/privtest.pkcs7.pem";
-        create_keys(&pub_name, &priv_name);
+        create_keys(&pub_name, &priv_name, &false);
 
         let test_string = "abcd1234";
         let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes(), &false);
@@ -294,7 +294,7 @@ fn create_keys(public_key_filename: &str, private_key_filename: &str, verbose: &
         .write_all(&private_key.private_key_to_pem().unwrap())
         .unwrap();
     // print the paths that the keys were generated at
-    if verbose {
+    if *verbose {
         println!(
             "Keys generated and written to {} and {}.",
             &private_key_filename, &public_key_filename
