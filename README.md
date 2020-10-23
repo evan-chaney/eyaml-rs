@@ -1,4 +1,9 @@
 # eyaml-rs
+[![build](https://github.com/evan-chaney/eyaml-rs/workflows/Rust-CI/badge.svg)](https://github.com/evan-chaney/eyaml-rs/actions?query=workflow%3ARust-CI)
+[![Release](https://github.com/evan-chaney/eyaml-rs/workflows/Release/badge.svg)](https://github.com/evan-chaney/eyaml-rs/actions?query=workflow%3ARelease)
+[![codecov](https://codecov.io/gh/evan-chaney/eyaml-rs/branch/master/graph/badge.svg?token=ZFDAL5JGS0)](undefined)
+[![crates.io](https://img.shields.io/crates/v/eyaml-rs)](https://crates.io/crates/eyaml-rs)
+
 Rust port of the EYAML Ruby Gem. Work in progress!
 
 ## Installation
