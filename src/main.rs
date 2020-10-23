@@ -45,7 +45,7 @@ mod tests {
         setup_test();
         let pub_name = "test.tmp/pubtest.pkcs7.pem";
         let priv_name = "test.tmp/privtest.pkcs7.pem";
-        create_keys(&pub_name, &priv_name, &false);
+        create_keys(&pub_name, &priv_name, &true);
 
         //        // Verify cert is signed by key
         //        let pub_key_file = File::open(&pub_name).unwrap();
@@ -82,14 +82,14 @@ mod tests {
         create_keys(&pub_name, &priv_name, &false);
 
         let test_string = "abcd1234";
-        let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes(), &false);
+        let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes(), &true);
         assert_eq!(
             test_string,
             from_utf8(&decrypt_str(
                 &pub_name,
                 &priv_name,
                 &cipherstring.as_ref().to_pem().unwrap(),
-                &false
+                &true
             ))
             .unwrap()
         );
@@ -119,7 +119,7 @@ mod tests {
     #[should_panic]
     fn encrypt_with_missing_key() {
         let input_array: [u8; 0] = [];
-        encrypt_str("/totally/not/real/file/path", &input_array, &false);
+        encrypt_str("/totally/not/real/file/path", &input_array, &true);
         return ();
     }
 
