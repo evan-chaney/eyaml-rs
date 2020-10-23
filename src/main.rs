@@ -1,7 +1,6 @@
 extern crate yaml_rust;
 use clap::{crate_version, load_yaml, App, ArgMatches};
 extern crate openssl;
-
 use std::io::prelude::*;
 use std::io::BufReader;
 //use std::io::BufWriter;
@@ -28,10 +27,12 @@ use tempfile::{tempfile, NamedTempFile};
 #[cfg(test)]
 mod tests {
 
-    use std::env::set_var;
+    use std::env::{remove_var, set_var};
     use std::fs::remove_file;
     // Pull all the imports from the rest of this file
     use super::*;
+
+    use pretty_assertions::{assert_eq, assert_ne};
 
     fn setup_test() {
         let test_dir = "test.tmp";
@@ -139,7 +140,8 @@ mod tests {
 
     #[test]
     fn find_editor_test() {
-        find_editor_path();
+        remove_var("EDITOR");
+        assert_eq!(find_editor_path(), "vim".to_string());
     }
 
     #[test]
@@ -147,6 +149,32 @@ mod tests {
         let new_editor = "TESTEDITOR";
         set_var("EDITOR", &new_editor);
         assert_eq!(find_editor_path(), new_editor.to_string());
+    }
+
+    #[test]
+    fn bad_file_extension() {
+        let bad_file_path = "test.tmp/badfile.ext";
+        File::create(&bad_file_path).unwrap();
+        assert_eq!(
+            validate_file_extension(
+                &bad_file_path,
+                vec![OsString::from("yaml"), OsString::from("yml")],
+            ),
+            false,
+        );
+    }
+
+    #[test]
+    fn good_file_extension() {
+        let good_file_path = "test.tmp/goodfile.ext";
+        File::create(&good_file_path).unwrap();
+        assert_eq!(
+            validate_file_extension(
+                &good_file_path,
+                vec![OsString::from("yaml"), OsString::from("ext")],
+            ),
+            true,
+        );
     }
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
