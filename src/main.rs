@@ -382,7 +382,6 @@ fn open_editor(yaml_path: &str) {
         .expect("Something went wrong");
 }
 
-// Maybe this isn't the right way to do this
 fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
     let public_key_path = match createkeys_args.value_of("public-key-path") {
         Some(words) => words,
