@@ -153,6 +153,7 @@ mod tests {
 
     #[test]
     fn bad_file_extension() {
+        setup_test();
         let bad_file_path = "test.tmp/badfile.ext";
         File::create(&bad_file_path).unwrap();
         assert_eq!(
@@ -166,6 +167,7 @@ mod tests {
 
     #[test]
     fn good_file_extension() {
+        setup_test();
         let good_file_path = "test.tmp/goodfile.ext";
         File::create(&good_file_path).unwrap();
         assert_eq!(
