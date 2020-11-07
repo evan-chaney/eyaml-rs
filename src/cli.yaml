@@ -45,6 +45,10 @@ subcommands:
             help: File to decrypt
             long: file
             takes_value: true
+        - in-place:
+            short: i
+            help: Decrypt file in place
+            long: in-place
   - edit:
       about: Edit an eyaml file
       args:
@@ -69,7 +73,16 @@ subcommands:
         - file:
             short: f
             help: File to encrypt
-            long: file
+            long: input-file
+            takes_value: true
+        - in-place:
+            short: i
+            help: Encrypt file in place
+            long: in-place
+        - outputfile:
+            short: o
+            help: File to put the ciphertext in
+            long: output-file
             takes_value: true
   - recrypt:
       about: Re-encrypt and eyaml file
