@@ -13,7 +13,7 @@ use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::collections::HashMap;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
 use std::str::from_utf8;
@@ -22,7 +22,7 @@ use std::{
     io::Read,
     process::{exit, Command},
 };
-use tempfile::{tempfile, NamedTempFile};
+use tempfile::NamedTempFile;
 
 #[cfg(test)]
 mod tests {
