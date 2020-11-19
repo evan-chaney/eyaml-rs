@@ -178,6 +178,19 @@ mod tests {
             true,
         );
     }
+
+    #[test]
+    fn write_good_file() {
+        setup_test();
+        let good_write_path = "test.tmp/good_write.txt";
+        write_file(&good_write_path, "Good test".as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn write_bad_file() {
+        write_file("/not/real/path", "Bad test".as_bytes()).unwrap();
+    }
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
 }
@@ -188,6 +201,12 @@ fn read_file_contents(file_path: &str) -> std::io::Result<Vec<u8>> {
     let mut file_contents = Vec::new();
     file_reader.read_to_end(&mut file_contents)?;
     Ok(file_contents)
+}
+
+fn write_file(file_path: &str, file_contents: &[u8]) -> std::io::Result<()> {
+    let mut file_obj = File::create(&file_path).unwrap();
+    file_obj.write_all(file_contents)?;
+    Ok(())
 }
 
 // Change to return result object
@@ -209,7 +228,6 @@ fn load_x509_file(public_key_filename: &str) -> X509 {
     return pub_key;
 }
 
-//todo return Pkcs7
 fn encrypt_str(
     public_key_filename: &str,
     plaintext: &[u8],
@@ -231,13 +249,6 @@ fn encrypt_str(
         Pkcs7Flags::empty(),
     )
     .expect("There was an error encrypting the value!");
-    if verbose.clone() {
-        print! {"New ciphertext: "}
-    }
-    println!(
-        "{:#}",
-        from_utf8(&encrypted_pkcs7.as_ref().to_pem().unwrap()).unwrap()
-    );
     return encrypted_pkcs7;
 }
 
@@ -418,7 +429,32 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
     if file_supplied {
         string_to_encrypt = file_to_encrypt.as_ref();
     }
-    encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
+    let ciphertext_pkcs7 = encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
+    if verbose.clone() {
+        print! {"New ciphertext: "}
+    }
+    println!(
+        "{:#}",
+        from_utf8(&ciphertext_pkcs7.as_ref().to_pem().unwrap()).unwrap()
+    );
+    let mut output_file: String = "".into();
+    // todo: verify this in-place doesn't need a different method
+    match encrypt_args.value_of("in-place") {
+        Some(file) => {
+            // this has to check the file that was fed in
+            output_file = file.into();
+        }
+        None => match encrypt_args.value_of("output-file") {
+            Some(ofile) => output_file = ofile.into(),
+            None => {}
+        },
+    }
+    if output_file != "" {
+        match write_file(&output_file, &ciphertext_pkcs7.as_ref().to_pem().unwrap()) {
+            Ok(_) => {}
+            Err(_) => println!("There was an error writing the ciphertext to file!"),
+        }
+    }
 }
 
 fn decrypt_cli(decrypt_args: &ArgMatches, verbose: bool) {
