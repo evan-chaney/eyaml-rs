@@ -439,20 +439,34 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
     );
     let mut output_file: String = "".into();
     // todo: verify this in-place doesn't need a different method
-    match encrypt_args.value_of("in-place") {
-        Some(file) => {
-            // this has to check the file that was fed in
-            output_file = file.into();
+    if encrypt_args.is_present("in-place") {
+        // this has to check the file that was fed in
+        if verbose.clone() {
+            println!("Going to try and use input file as the output file (encrypt in place)")
         }
-        None => match encrypt_args.value_of("output-file") {
-            Some(ofile) => output_file = ofile.into(),
+        output_file = encrypt_args.value_of("file").unwrap().into();
+    } else {
+        match encrypt_args.value_of("output-file") {
+            Some(ofile) => {
+                if verbose.clone() {
+                    println!("Using output-file argas output file")
+                }
+                output_file = ofile.into()
+            }
             None => {}
-        },
+        };
     }
     if output_file != "" {
+        if verbose.clone() {
+            println!("Going to write ciphertext to {}", &output_file)
+        }
         match write_file(&output_file, &ciphertext_pkcs7.as_ref().to_pem().unwrap()) {
             Ok(_) => {}
             Err(_) => println!("There was an error writing the ciphertext to file!"),
+        }
+    } else {
+        if verbose.clone() {
+            println!("output_file variable was never assigned to anything");
         }
     }
 }

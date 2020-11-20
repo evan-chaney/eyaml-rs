@@ -79,7 +79,7 @@ subcommands:
             short: i
             help: Encrypt file in place
             long: in-place
-        - outputfile:
+        - output-file:
             short: o
             help: File to put the ciphertext in
             long: output-file
