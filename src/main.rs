@@ -76,6 +76,18 @@ mod tests {
     }
 
     #[test]
+    fn test_key_creation_cli() {
+        setup_test();
+        let cli_yaml = load_yaml!("cli.yaml");
+        let app = App::from(cli_yaml).version(crate_version!());
+        let args = app.get_matches_from(
+            "eyaml-rs createkeys -k test.tmp/privtestcli.pkcs7.pem -p test.tmp/pubtestcli.pkcs7.pem"
+                .split_whitespace(),
+        );
+        create_keys_cli(&args, false);
+    }
+
+    #[test]
     fn encrypt_decrypt() {
         setup_test();
         let pub_name = "test.tmp/pubtest.pkcs7.pem";
@@ -507,6 +519,10 @@ fn decrypt_cli(decrypt_args: &ArgMatches, verbose: bool) {
     );
 }
 fn edit_cli(edit_args: &ArgMatches, verbose: bool) {}
+
+//fn parse_args<I, T>(itr: I) -> ArgMatches<'static> {
+
+//}
 
 fn main() {
     let cli_yaml = load_yaml!("cli.yaml");
