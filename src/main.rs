@@ -12,7 +12,6 @@ use openssl::rsa::Rsa;
 use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
-use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
@@ -85,6 +84,17 @@ mod tests {
                 .split_whitespace(),
         );
         create_keys_cli(&args, false);
+    }
+
+    #[test]
+    fn test_encrypt_cli() {
+        setup_test();
+        let cli_yaml = load_yaml!("cli.yaml");
+        let app = App::from(cli_yaml).version(crate_version!());
+        let args = app.get_matches_from(
+            "eyaml-rs encrypt -s 'test123' -p test.tmp/pubtestcli.pkcs7.pem".split_whitespace(),
+        );
+        encrypt_cli(&args, false);
     }
 
     #[test]
