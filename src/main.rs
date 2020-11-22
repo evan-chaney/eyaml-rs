@@ -36,7 +36,10 @@ mod tests {
     fn setup_test() {
         let test_dir = "test.tmp";
         if !Path::new(&test_dir).is_dir() {
-            create_dir(Path::new(&test_dir)).unwrap();
+            match create_dir(Path::new(&test_dir)) {
+                Ok(_) => {}
+                Err(_) => {}
+            };
         }
     }
 
@@ -190,6 +193,7 @@ mod tests {
             ),
             false,
         );
+        remove_file(&bad_file_path).unwrap();
     }
 
     #[test]
@@ -374,7 +378,10 @@ fn find_editor_path() -> String {
     // Have this try common editors otherwise
     let editor: String = match var("EDITOR") {
         Ok(editor) => editor.clone(),
-        Err(_) => "vim".to_string(),
+        Err(_) => {
+            println!("Unable to determine default editor. Is EDITOR envrionment variable set?");
+            "vim".to_string()
+        }
     };
     return editor;
 }
