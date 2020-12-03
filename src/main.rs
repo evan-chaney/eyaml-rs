@@ -4,6 +4,7 @@ extern crate openssl;
 use std::io::prelude::*;
 use std::io::BufReader;
 //use std::io::BufWriter;
+use fs_err::{create_dir, read_to_string, File};
 use openssl::asn1::Asn1Time;
 use openssl::hash::MessageDigest;
 use openssl::pkcs7::{Pkcs7, Pkcs7Flags};
@@ -13,7 +14,6 @@ use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
 use std::ffi::OsString;
-use std::fs::{create_dir, read_to_string, File};
 use std::path::Path;
 use std::str::from_utf8;
 use std::{
