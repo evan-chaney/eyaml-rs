@@ -15,7 +15,7 @@ exclude = ["keys/*"]
 
 [dependencies]
 yaml-rust = ">= 0.4.1"
-clap = { version = "2.33.3", features = ["yaml", "color", "suggestions"] }
+clap = { version = "3.0.4", features = ["yaml", "color", "suggestions"] }
 openssl = "0.10.30"
 tempfile = "3.1.0"
 fs-err = "2.5.0"
