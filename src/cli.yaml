@@ -89,4 +89,4 @@ subcommands:
   - rekey:
       about: Create new keys and re-encrypt an eyaml file
   - version:
-      about: Show version info
+      about: Show version 

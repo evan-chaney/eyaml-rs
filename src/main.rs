@@ -1,4 +1,5 @@
 extern crate yaml_rust;
+use clap::{arg, command, value_parser, ArgAction, Command};
 use clap::{crate_version, load_yaml, App, ArgMatches};
 extern crate openssl;
 use std::io::prelude::*;
@@ -22,6 +23,7 @@ use std::{
     process::{exit, Command},
 };
 use tempfile::NamedTempFile;
+
 
 #[cfg(test)]
 mod tests {
@@ -66,7 +68,7 @@ mod tests {
         let priv_key = load_rsa_file_private(&priv_name);
         let pub_key = load_x509_file(&pub_name);
         assert_eq!(
-            pub_key
+    ``        pub_key
                 .verify(PKey::from_rsa(priv_key).unwrap().as_ref())
                 .unwrap(),
             true
@@ -81,7 +83,7 @@ mod tests {
     fn test_key_creation_cli() {
         setup_test();
         let cli_yaml = load_yaml!("cli.yaml");
-        let app = App::from(cli_yaml).version(crate_version!());
+        let app = App::from_yaml(cli_yaml).version(crate_version!());
         let args = app.get_matches_from(
             "eyaml-rs createkeys -k test.tmp/privtestcli.pkcs7.pem -p test.tmp/pubtestcli.pkcs7.pem"
                 .split_whitespace(),
@@ -547,9 +549,28 @@ fn edit_cli(edit_args: &ArgMatches, verbose: bool) {}
 //}
 
 fn main() {
-    let cli_yaml = load_yaml!("cli.yaml");
-    let app = App::from(cli_yaml).version(crate_version!());
-    let args = app.get_matches();
+//    let cli_yaml = load_yaml!("cli.yaml");
+//    let app = App::from(cli_yaml).version(crate_version!());
+//    let args = app.get_matches();
+    let args = command!()
+        .arg(arg!(-v  --verbose "Enables verbose mode").required(false))
+        .subcommand(
+            Command::new("createkeys")
+            .about("Create new encryption keys")
+            .arg(arg!(-p --public-key-file [name] "path to create the public key at").required(true))
+            .arg(arg!(-k --private-key-file [name] "path to create the private key at").required(true))
+            )
+
+        .subcommand(
+            Command::new("decrypt")
+            .about("Decrypt some datea")
+            .arg(arg!(-p --public-key-file [name] "path of the public key").required(true))
+            .arg(arg!(-k --private-key-file [name] "path of the private key").required(true))
+            
+            .arg(arg!(-f --file [name] "file to decrypt"))
+            .arg(arg!(-i --in-place "decrypt file to decrypt").action(ArgAction::SetTrue))
+            )
+        .get_matches();
 
     let verbose = args.is_present("verbose");
 
