@@ -13,6 +13,7 @@ use openssl::rsa::Rsa;
 use openssl::stack::Stack;
 use openssl::symm::Cipher;
 use openssl::x509::{X509Builder, X509NameBuilder, X509};
+use regex::Regex;
 use std::ffi::OsString;
 use std::path::Path;
 use std::str::from_utf8;
@@ -222,6 +223,40 @@ mod tests {
     fn write_bad_file() {
         write_file("/not/real/path", "Bad test".as_bytes()).unwrap();
     }
+
+    #[test]
+    fn test_decrypt_yaml_content() {
+        setup_test();
+        let pub_name = "test.tmp/pubtest_edit.pkcs7.pem";
+        let priv_name = "test.tmp/privtest_edit.pkcs7.pem";
+        create_keys(&pub_name, &priv_name, &false);
+
+        let plaintext = "mysecret";
+        let pkcs7 = encrypt_str(&pub_name, plaintext.as_bytes(), &false);
+        let enc_body = pkcs7_to_enc_body(&pkcs7);
+        let yaml = format!("password: ENC[PKCS7,{}]", enc_body);
+
+        let decrypted = decrypt_yaml_content(&yaml, &pub_name, &priv_name, false);
+        assert_eq!(decrypted, format!("password: DEC::PKCS7[{}]::", plaintext));
+    }
+
+    #[test]
+    fn test_encrypt_yaml_content() {
+        setup_test();
+        let pub_name = "test.tmp/pubtest_edit2.pkcs7.pem";
+        let priv_name = "test.tmp/privtest_edit2.pkcs7.pem";
+        create_keys(&pub_name, &priv_name, &false);
+
+        let plaintext = "mysecret";
+        let yaml = format!("password: DEC::PKCS7[{}]::", plaintext);
+        let reencrypted = encrypt_yaml_content(&yaml, &pub_name, false);
+
+        // Verify the result has ENC[PKCS7,...] format and can be decrypted back
+        assert!(reencrypted.starts_with("password: ENC[PKCS7,"));
+        let decrypted_back = decrypt_yaml_content(&reencrypted, &pub_name, &priv_name, false);
+        assert_eq!(decrypted_back, format!("password: DEC::PKCS7[{}]::", plaintext));
+    }
+
     // todo: switch to something like speculate.rs for test teardown support
     //  (aka delete some of these files that are used)
 }
@@ -304,10 +339,62 @@ fn decrypt_str(
         )
         .unwrap();
     if verbose.clone() {
-        print!("Decrypted content: ")
+        println!("{:}", from_utf8(decrypted_content.as_ref()).unwrap());
     }
-    println!("{:}", from_utf8(decrypted_content.as_ref()).unwrap());
     return decrypted_content;
+}
+
+// Reconstructs a full PKCS7 PEM block from the bare base64 body in ENC[PKCS7,<body>].
+fn enc_to_pem(enc_body: &str) -> Vec<u8> {
+    let b64: String = enc_body.chars().filter(|c| !c.is_whitespace()).collect();
+    let wrapped: String = b64
+        .chars()
+        .collect::<Vec<_>>()
+        .chunks(64)
+        .map(|chunk| chunk.iter().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n");
+    format!(
+        "-----BEGIN PKCS7-----\n{}\n-----END PKCS7-----\n",
+        wrapped
+    )
+    .into_bytes()
+}
+
+// Strips PEM headers/footers to produce the bare base64 body for ENC[PKCS7,<body>].
+fn pkcs7_to_enc_body(pkcs7: &Pkcs7) -> String {
+    let pem_bytes = pkcs7.to_pem().unwrap();
+    let pem_str = from_utf8(&pem_bytes).unwrap();
+    pem_str
+        .lines()
+        .filter(|line| !line.starts_with("-----"))
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+// Replaces ENC[PKCS7,...] values in a YAML string with DEC::PKCS7[plaintext]:: placeholders.
+fn decrypt_yaml_content(content: &str, pub_key: &str, priv_key: &str, verbose: bool) -> String {
+    let re = Regex::new(r"ENC\[PKCS7,([A-Za-z0-9+/=\n\r]+)\]").unwrap();
+    re.replace_all(content, |caps: &regex::Captures| {
+        let body = &caps[1];
+        let pem = enc_to_pem(body);
+        let plaintext_bytes = decrypt_str(pub_key, priv_key, &pem, &verbose);
+        let plaintext = from_utf8(&plaintext_bytes).unwrap().to_string();
+        format!("DEC::PKCS7[{}]::", plaintext)
+    })
+    .into_owned()
+}
+
+// Replaces DEC::PKCS7[plaintext]:: placeholders in a YAML string with ENC[PKCS7,...] values.
+fn encrypt_yaml_content(content: &str, pub_key: &str, verbose: bool) -> String {
+    let re = Regex::new(r"DEC::PKCS7\[([^\]]*)\]::").unwrap();
+    re.replace_all(content, |caps: &regex::Captures| {
+        let plaintext = &caps[1];
+        let pkcs7 = encrypt_str(pub_key, plaintext.as_bytes(), &verbose);
+        let body = pkcs7_to_enc_body(&pkcs7);
+        format!("ENC[PKCS7,{}]", body)
+    })
+    .into_owned()
 }
 
 fn create_keys(public_key_filename: &str, private_key_filename: &str, verbose: &bool) {
@@ -401,30 +488,19 @@ fn validate_file_extension(src_path: &str, extensions: Vec<OsString>) -> bool {
     return true;
 }
 
-fn open_editor(yaml_path: &str) {
+fn open_editor(temp_path: &Path) {
     let editor = find_editor_path();
-    let src_yaml_path = Path::new(yaml_path);
-    if !validate_file_extension(
-        &yaml_path,
-        vec![OsString::from("yaml"), OsString::from("yml")],
-    ) {
-        println!("{} does not appear to be a valid YAML file.", &yaml_path);
+    let status = Command::new(&editor)
+        .arg(temp_path)
+        .status()
+        .unwrap_or_else(|e| {
+            println!("Failed to launch editor '{}': {}", editor, e);
+            exit(1);
+        });
+    if !status.success() {
+        println!("Editor exited with an error. Aborting.");
         exit(1);
     }
-
-    //the path of the unencrypted file
-    let unencrypted_file = NamedTempFile::new().unwrap_or_else(|e| {
-        println!("Could not create temp file at {}", e);
-        exit(1);
-    });
-
-    // Unencrypt file
-    // todo
-
-    Command::new(editor)
-        .arg(&unencrypted_file.path())
-        .status()
-        .expect("Something went wrong");
 }
 
 fn create_keys_cli(createkeys_args: &ArgMatches, verbose: bool) {
@@ -540,7 +616,73 @@ fn decrypt_cli(decrypt_args: &ArgMatches, verbose: bool) {
         &verbose,
     );
 }
-fn edit_cli(edit_args: &ArgMatches, verbose: bool) {}
+
+fn edit_cli(edit_args: &ArgMatches, verbose: bool) {
+    let yaml_path = match edit_args.value_of("file") {
+        Some(f) => f,
+        None => {
+            println!("No file specified. Use -f <file>.");
+            exit(1);
+        }
+    };
+    let pub_key = match edit_args.value_of("public-key-path") {
+        Some(p) => p,
+        None => "keys/public_key.pkcs7.pem",
+    };
+    let priv_key = match edit_args.value_of("private-key-path") {
+        Some(k) => k,
+        None => "keys/private_key.pkcs7.pem",
+    };
+
+    if !validate_file_extension(
+        yaml_path,
+        vec![OsString::from("yaml"), OsString::from("yml")],
+    ) {
+        println!("{} does not appear to be a valid YAML file.", yaml_path);
+        exit(1);
+    }
+
+    let original_content = match read_to_string(yaml_path) {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Failed to read {}: {}", yaml_path, e);
+            exit(1);
+        }
+    };
+
+    let decrypted_content = decrypt_yaml_content(&original_content, pub_key, priv_key, verbose);
+
+    let temp_file = NamedTempFile::new().unwrap_or_else(|e| {
+        println!("Could not create temp file: {}", e);
+        exit(1);
+    });
+    let temp_path = temp_file.path().to_path_buf();
+    write_file(temp_path.to_str().unwrap(), decrypted_content.as_bytes()).unwrap_or_else(|e| {
+        println!("Failed to write temp file: {}", e);
+        exit(1);
+    });
+
+    open_editor(&temp_path);
+
+    let edited_content = match read_to_string(temp_path.to_str().unwrap()) {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Failed to read temp file after editing: {}", e);
+            exit(1);
+        }
+    };
+
+    let reencrypted_content = encrypt_yaml_content(&edited_content, pub_key, verbose);
+
+    write_file(yaml_path, reencrypted_content.as_bytes()).unwrap_or_else(|e| {
+        println!("Failed to write back to {}: {}", yaml_path, e);
+        exit(1);
+    });
+
+    if verbose {
+        println!("Edit complete. Saved to {}.", yaml_path);
+    }
+}
 
 //fn parse_args<I, T>(itr: I) -> ArgMatches<'static> {
 
@@ -604,11 +746,7 @@ fn main() {
             unimplemented!();
         }
         ("edit", Some(edit_args)) => {
-            let input_file = match edit_args.value_of("file") {
-                Some(f) => f,
-                None => "Test123",
-            };
-            open_editor(&input_file);
+            edit_cli(edit_args, verbose);
         }
         ("", none_args) => {
             println!("No subcommand was specified.");

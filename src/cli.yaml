@@ -57,6 +57,16 @@ subcommands:
             help: File to decrypt and edit
             long: file
             takes_value: true
+        - public-key-path:
+            help: path to the public key
+            short: p
+            long: public-key-file
+            takes_value: true
+        - private-key-path:
+            help: path to the private key
+            short: k
+            long: private-key-file
+            takes_value: true
   - encrypt:
       about: Encrypt some data
       args:
