@@ -96,7 +96,7 @@ mod tests {
         let cli_yaml = load_yaml!("cli.yaml");
         let app = App::from(cli_yaml).version(crate_version!());
         let args = app.get_matches_from(
-            "eyaml-rs encrypt -s 'test123' -p test.tmp/pubtestcli2.pkcs7.pem".split_whitespace(),
+            "eyaml-rs encrypt -s test123 -p test.tmp/pubtestcli2.pkcs7.pem".split_whitespace(),
         );
         create_keys(
             "test.tmp/pubtestcli2.pkcs7.pem",
