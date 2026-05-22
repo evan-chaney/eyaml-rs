@@ -17,7 +17,7 @@ use std::ffi::OsString;
 use std::path::Path;
 use std::str::from_utf8;
 use std::{
-    env::{temp_dir, var},
+    env::var,
     io::Read,
     process::{exit, Command},
 };
@@ -31,7 +31,7 @@ mod tests {
     // Pull all the imports from the rest of this file
     use super::*;
 
-    use pretty_assertions::{assert_eq, assert_ne};
+    use pretty_assertions::assert_eq;
 
     fn setup_test() {
         let test_dir = "test.tmp";
@@ -113,7 +113,7 @@ mod tests {
         create_keys(&pub_name, &priv_name, &false);
 
         let test_string = "abcd1234";
-        let cipherstring = encrypt_str(&pub_name, test_string.clone().as_bytes(), &true);
+        let cipherstring = encrypt_str(&pub_name, test_string.as_bytes(), &true);
         assert_eq!(
             test_string,
             from_utf8(&decrypt_str(
@@ -264,7 +264,7 @@ fn encrypt_str(
     plaintext: &[u8],
     verbose: &bool,
 ) -> openssl::pkcs7::Pkcs7 {
-    if verbose.clone() {
+    if *verbose {
         println!("Using public key: {}", &public_key_filename);
     }
     let encryption_algo: Cipher = Cipher::aes_256_cbc();
@@ -303,7 +303,7 @@ fn decrypt_str(
             Pkcs7Flags::empty(),
         )
         .unwrap();
-    if verbose.clone() {
+    if *verbose {
         print!("Decrypted content: ")
     }
     println!("{:}", from_utf8(decrypted_content.as_ref()).unwrap());
@@ -403,7 +403,7 @@ fn validate_file_extension(src_path: &str, extensions: Vec<OsString>) -> bool {
 
 fn open_editor(yaml_path: &str) {
     let editor = find_editor_path();
-    let src_yaml_path = Path::new(yaml_path);
+    let _src_yaml_path = Path::new(yaml_path);
     if !validate_file_extension(
         &yaml_path,
         vec![OsString::from("yaml"), OsString::from("yml")],
@@ -464,7 +464,7 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
         string_to_encrypt = file_to_encrypt.as_ref();
     }
     let ciphertext_pkcs7 = encrypt_str(public_key_path, &string_to_encrypt.as_bytes(), &verbose);
-    if verbose.clone() {
+    if verbose {
         print! {"New ciphertext: "}
     }
     println!(
@@ -475,14 +475,14 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
     // todo: verify this in-place doesn't need a different method
     if encrypt_args.is_present("in-place") {
         // this has to check the file that was fed in
-        if verbose.clone() {
+        if verbose {
             println!("Going to try and use input file as the output file (encrypt in place)")
         }
         output_file = encrypt_args.value_of("file").unwrap().into();
     } else {
         match encrypt_args.value_of("output-file") {
             Some(ofile) => {
-                if verbose.clone() {
+                if verbose {
                     println!("Using output-file argas output file")
                 }
                 output_file = ofile.into()
@@ -491,7 +491,7 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
         };
     }
     if output_file != "" {
-        if verbose.clone() {
+        if verbose {
             println!("Going to write ciphertext to {}", &output_file)
         }
         match write_file(&output_file, &ciphertext_pkcs7.as_ref().to_pem().unwrap()) {
@@ -499,7 +499,7 @@ fn encrypt_cli(encrypt_args: &ArgMatches, verbose: bool) {
             Err(_) => println!("There was an error writing the ciphertext to file!"),
         }
     } else {
-        if verbose.clone() {
+        if verbose {
             println!("output_file variable was never assigned to anything");
         }
     }
@@ -540,7 +540,8 @@ fn decrypt_cli(decrypt_args: &ArgMatches, verbose: bool) {
         &verbose,
     );
 }
-fn edit_cli(edit_args: &ArgMatches, verbose: bool) {}
+#[allow(dead_code)]
+fn edit_cli(_edit_args: &ArgMatches, _verbose: bool) {}
 
 //fn parse_args<I, T>(itr: I) -> ArgMatches<'static> {
 
@@ -567,23 +568,23 @@ fn main() {
         }
         ("recrypt", Some(recrypt_args)) => {
             println!("This is not implemented yet.");
-            let mut file_supplied = false;
-            let mut string_to_recrypt = match recrypt_args.value_of("string") {
+            let mut _file_supplied = false;
+            let mut _string_to_recrypt = match recrypt_args.value_of("string") {
                 Some(words) => words,
                 None => "",
             };
-            println!("{}", &string_to_recrypt);
-            let public_key_path = match recrypt_args.value_of("public-key-path") {
+            println!("{}", &_string_to_recrypt);
+            let _public_key_path = match recrypt_args.value_of("public-key-path") {
                 Some(words) => words,
                 None => "keys/public_key.pkcs7.pem",
             };
-            let private_key_path = match recrypt_args.value_of("private-key-path") {
+            let _private_key_path = match recrypt_args.value_of("private-key-path") {
                 Some(words) => words,
                 None => "keys/private_key.pkcs7.pem",
             };
-            let file_to_recrypt: String = match recrypt_args.value_of("file") {
+            let _file_to_recrypt: String = match recrypt_args.value_of("file") {
                 Some(file) => {
-                    file_supplied = true;
+                    _file_supplied = true;
                     match read_to_string(&file) {
                         Ok(file_contents) => file_contents.to_owned(),
                         Err(_) => String::from("Hello world!"),
@@ -591,15 +592,15 @@ fn main() {
                 }
                 None => String::from("Hello World!"),
             };
-            if file_supplied {
-                string_to_recrypt = file_to_recrypt.as_ref();
+            if _file_supplied {
+                _string_to_recrypt = _file_to_recrypt.as_ref();
             }
             //decrypt
             //
             //encrypt
         }
 
-        ("rekey", Some(rekey_args)) => {
+        ("rekey", Some(_rekey_args)) => {
             println!("This is not implemented yet.");
             unimplemented!();
         }
@@ -610,7 +611,7 @@ fn main() {
             };
             open_editor(&input_file);
         }
-        ("", none_args) => {
+        ("", _none_args) => {
             println!("No subcommand was specified.");
             println!("{}", args.usage());
         }
